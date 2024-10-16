@@ -14,6 +14,7 @@ let employeeValue = ref({
 })
 
 let router = useRouter()
+
 //----------------------------------functions----------------------------//
 
 async function submitForm() {
@@ -37,7 +38,7 @@ async function submitForm() {
     if(item.value == '') {
       item.classList.add('error-input')
     }else {
-      input.classList.remove('error-input'); 
+      input.classList?.remove('error-input'); 
     }
   })
 

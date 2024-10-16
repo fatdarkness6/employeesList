@@ -1,13 +1,15 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { ref, watch } from 'vue'
 
 let props = defineProps({
   data: Object
 })
 let addFamilyMemberData = ref([])
 let openModal = ref(false)
+let updateOpenModal = ref(0)
 let fetchData = ref([])
 let addFamilyId = ref(0)
+let loading = ref(false)
 
 let employeeValue = ref({
   firstName: '',
@@ -19,6 +21,7 @@ let employeeValue = ref({
 //----------------------------------functions----------------------------//
 
 async function getAllEmployeeInfo() {
+  loading.value = true
   return await fetch(`https://pouya-salamat-employee-task.liara.run/employee/${props.data.id}`, {
     method: 'GET',
     headers: {
@@ -35,7 +38,7 @@ async function getAllEmployeeInfo() {
         email: data.email,
         dateOfBirth: formattedDateOfBirth
       }
-
+  
       addFamilyMemberData.value = data.family.map((item) => {
         
         return {
@@ -45,6 +48,8 @@ async function getAllEmployeeInfo() {
           dateOfBirth: new Date(item.dateOfBirth).toISOString().split('T')[0]
         }
       })
+    }).finally(() => {
+      loading.value = false
     })
 }
 
@@ -114,15 +119,30 @@ function deleteFamilyMember(id) {
     addFamilyMemberData.value.splice(fn, 1)
   }
 }
+function updateOpenModalFn() {
+  ++updateOpenModal.value
+}
+//...............................watch.......................................//
 
-onMounted(() => {
-  getAllEmployeeInfo()
+watch(updateOpenModal , (newVal) => {
+  if(newVal <=1) {
+    getAllEmployeeInfo()
+  }else {
+    return
+  }
 })
+
+// ..............................onMounted...................................//
+
+
 </script>
 
 <template>
   <div class="list">
-    <div @click="openModal = !openModal" class="flx">
+    <div @click="() => {
+      openModal = !openModal
+      updateOpenModalFn()
+    }" class="flx">
       <div class="icon">
         <img src="../../../../public/free-arrow-down-icon-3101-thumb.png" />
       </div>
@@ -131,7 +151,9 @@ onMounted(() => {
         <h2>{{ props.data.lastName }}</h2>
       </div>
     </div>
-    <div id="completeData" :class="[openModal ? 'completeData' : 'hidden']">
+    
+    <h3 v-if="loading" >loading...</h3>
+    <div v-else id="completeData" :class="[openModal ? 'completeData' : 'hidden']">
       <button @click="deleteEmployee" class="delete-btn">حذف کاربر</button>
       <div class="edit">
         <div class="container">
