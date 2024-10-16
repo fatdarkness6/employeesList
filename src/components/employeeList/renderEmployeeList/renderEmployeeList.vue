@@ -2,7 +2,8 @@
 import { onMounted, ref } from 'vue'
 
 let props = defineProps({
-  data: Object
+  data: Object,
+  store : Object
 })
 let addFamilyMemberData = ref([])
 let openModal = ref(false)
@@ -21,9 +22,6 @@ let employeeValue = ref({
 async function getAllEmployeeInfo() {
   return await fetch(`https://pouya-salamat-employee-task.liara.run/employee/${props.data.id}`, {
     method: 'GET',
-    headers: {
-      Authorization: '12345678910'
-    }
   })
     .then((response) => response.json())
     .then((data) => {
@@ -35,9 +33,7 @@ async function getAllEmployeeInfo() {
         email: data.email,
         dateOfBirth: formattedDateOfBirth
       }
-
       addFamilyMemberData.value = data.family.map((item) => {
-        
         return {
           id: props.data.id,
           name: item.name,
@@ -71,22 +67,15 @@ async function editFormSubmit() {
     },
     body: JSON.stringify(data)
   })
-    .then((response) => {
-      if(response.status == 200) {
-        location.reload()
-      }
-    })
 }
 
 async function deleteEmployee() {
+  console.log(props.data)
   return await fetch(`https://pouya-salamat-employee-task.liara.run/employee/${props.data.id}`, {
     method: 'DELETE',
-    headers: {
-      Authorization: '12345678910'
-    }
-  }).then((response) => {
-    if (response.status == 204) {
-      location.reload()
+  }).then((e) => {
+    if(e.status == 204) {
+      props.store.removeEmployee(props.data.id)
     }
   })
 }

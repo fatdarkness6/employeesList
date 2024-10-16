@@ -1,20 +1,17 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { onMounted } from 'vue'
 import renderEmployeeList from './renderEmployeeList/renderEmployeeList.vue'
-let employeeList = ref([])
+import { usePinia } from '@/store/createPiniaStore';
 
-async function getEmployeeList() {
-  await fetch('https://pouya-salamat-employee-task.liara.run/employee')
-    .then((response) => response.json())
-    .then((e) => {
-      employeeList.value = e
-    })
-}
+
+let store = usePinia()
+
 
 //----------------------------------onMounted----------------------------//
 
+
 onMounted(() => {
-  getEmployeeList()
+  store.getEmployeeList()
 })
 </script>
 
@@ -25,7 +22,7 @@ onMounted(() => {
         <div class="title">
           <h2>کارمندان</h2>
         </div>
-        <renderEmployeeList v-for="data in employeeList" :key="data.id" :data="data" />
+        <renderEmployeeList v-for="data in store.getEmployeeData" :key="data.id" :data="data" :store="store" />
         <div class="addEmployee">
           <RouterLink to="/addEmployee">
             <button>افزودن کارمند</button>

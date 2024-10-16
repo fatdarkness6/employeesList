@@ -4,8 +4,7 @@ import { useRouter } from 'vue-router'
 
 let addFamilyMemberData = ref([])
 let addFamilyId = ref(0)
-
-
+let emailError = ref('')
 let employeeValue = ref({
   firstName: '',
   lastName: '',
@@ -14,10 +13,10 @@ let employeeValue = ref({
 })
 
 let router = useRouter()
+
 //----------------------------------functions----------------------------//
 
 async function submitForm() {
-
   let data = {
     firstName: employeeValue.value.firstName,
     lastName: employeeValue.value.lastName,
@@ -37,11 +36,16 @@ async function submitForm() {
     if(item.value == '') {
       item.classList.add('error-input')
     }else {
-      input.classList.remove('error-input'); 
+      input.classList?.remove('error-input'); 
     }
   })
 
-  
+  if (!validateEmail(employeeValue.value.email)) {
+    emailError.value = 'آدرس ایمیل معتبر نیست'
+    return
+  } else if(validateEmail(employeeValue.value.email) == false) {
+    emailError.value = "فیلد را پر کنید"
+  }
 
   if(employeeValue.value.firstName && employeeValue.value.lastName && employeeValue.value.email && employeeValue.value.dateOfBirth) {
     fetch('https://pouya-salamat-employee-task.liara.run/employee', {
@@ -59,6 +63,8 @@ async function submitForm() {
        })    
   }
 }
+
+
 function addFamilyMember() {
   ++addFamilyId.value
   let addFamilyObject = {
@@ -70,11 +76,21 @@ function addFamilyMember() {
   addFamilyMemberData.value.push(addFamilyObject)
 }
 
+
 function deleteFamilyMember(id) {
   let fn = addFamilyMemberData.value.findIndex((item) => item.id === id)
-
   if (fn !== -1) {
     addFamilyMemberData.value.splice(fn, 1)
+  }
+}
+
+function validateEmail(email) {
+  if(email !== "" ) {
+
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return re.test(email)
+  }else {
+    return false
   }
 }
 </script>
@@ -101,6 +117,7 @@ function deleteFamilyMember(id) {
             class="selectInput"
             placeholder="example@gmail.com"
           />
+          <h3 style="color: red;">{{ emailError }}</h3>
         </div>
         <div class="form-group">
           <label for="birthDate">تاریخ تولد</label>
