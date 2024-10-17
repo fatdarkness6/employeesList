@@ -5,3 +5,130 @@ h1 , h2 , h3 , h4 , h5 , h6 , p {
     max-width: 1200px;
     margin: 0 auto;
 }
+.list {
+    border: 1px solid #5151518f;
+    padding: 20px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    cursor: pointer;
+    width: 100%;
+  }
+  .list #completeData {
+    transition: all 0.3s;
+    overflow: hidden;
+    direction: rtl;
+  }
+  .list .hidden {
+    height: 0;
+  }
+  .list .completeData {
+    height: auto;
+  }
+  
+  .list .flx {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .list .name {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .list .icon img {
+    width: 15px;
+    height: 15px;
+    cursor: pointer;
+  }
+  .container {
+    width: 100%;
+    margin: 20px auto;
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .form {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .section {
+    margin-bottom: 20px;
+  }
+  
+  h4 {
+    margin-bottom: 10px;
+  }
+  
+  .form-group {
+    margin-bottom: 15px;
+  }
+  
+  label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
+  
+  input,
+  select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  
+  .family-member {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 15px;
+  }
+  
+  h5 {
+    margin-bottom: 10px;
+  }
+  
+  .delete-btn,
+  .add-member-btn,
+  .submit-btn,
+  .cancel-btn {
+    background-color: #f44336;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+  
+  .add-member-btn {
+    background-color: #4caf50;
+    width: 100%;
+  }
+  
+  .submit-btn {
+    background-color: #4caf50;
+  }
+  
+  .cancel-btn {
+    background-color: #777;
+  }
+  
+  .buttons {
+    display: flex;
+    justify-content: space-between;
+  }
+  .addEmployee {
+    width: 100%;
+  }

@@ -1,7 +1,9 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import renderEmployeeList from './renderEmployeeList/renderEmployeeList.vue'
+import addEmployee from '../addEmployee/addEmployee.vue'
 let employeeList = ref([])
+let showAddEmployee = ref(false)
 
 async function getEmployeeList() {
   await fetch('https://pouya-salamat-employee-task.liara.run/employee')
@@ -11,6 +13,9 @@ async function getEmployeeList() {
     })
 }
 
+function changeValueOfAddEmployee() {
+  showAddEmployee.value = true
+}
 //----------------------------------onMounted----------------------------//
 
 onMounted(() => {
@@ -27,9 +32,10 @@ onMounted(() => {
         </div>
         <renderEmployeeList v-for="data in employeeList" :key="data.id" :data="data" />
         <div class="addEmployee">
-          <RouterLink to="/addEmployee">
-            <button>افزودن کارمند</button>
-          </RouterLink>
+            <div :class="[showAddEmployee ? 'show' : 'hidden']">
+              <addEmployee @response="(data) => showAddEmployee = data"/>
+            </div>
+            <button v-if="!showAddEmployee" @click="changeValueOfAddEmployee">افزودن کارمند</button>
         </div>
       </div>
     </div>
@@ -54,6 +60,12 @@ onMounted(() => {
 }
 .employee-list .addEmployee {
   text-align: center;
+}
+.employee-list .addEmployee .hidden {
+  display: none;
+}
+.employee-list .addEmployee .show {
+  display: block;
 }
 .employee-list .addEmployee button {
   padding: 12px;

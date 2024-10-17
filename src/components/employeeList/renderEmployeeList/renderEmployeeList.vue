@@ -1,54 +1,30 @@
 <script setup>
 import { ref, watch } from 'vue'
+import formComponent from '@/components/formComponent/formComponent.vue'
 
 let props = defineProps({
   data: Object
 })
-let addFamilyMemberData = ref([])
+
 let openModal = ref(false)
 let updateOpenModal = ref(0)
 let fetchData = ref([])
-let addFamilyId = ref(0)
+let addFamilyMemberData = ref([])
 let loading = ref(false)
-
-let employeeValue = ref({
-  firstName: '',
-  lastName: '',
-  email: '',
-  dateOfBirth: ''
-})
+let employeeValue = ref({})
 
 //----------------------------------functions----------------------------//
 
 async function getAllEmployeeInfo() {
   loading.value = true
   return await fetch(`https://pouya-salamat-employee-task.liara.run/employee/${props.data.id}`, {
-    method: 'GET',
-    headers: {
-      Authorization: '12345678910'
-    }
+    method: 'GET'
   })
     .then((response) => response.json())
     .then((data) => {
       fetchData.value = data
-      const formattedDateOfBirth = new Date(data.dateOfBirth).toISOString().split('T')[0]
-      employeeValue.value = {
-        firstName: data.firstName,
-        lastName: data.lastName,
-        email: data.email,
-        dateOfBirth: formattedDateOfBirth
-      }
-  
-      addFamilyMemberData.value = data.family.map((item) => {
-        
-        return {
-          id: props.data.id,
-          name: item.name,
-          relation: item.relation,
-          dateOfBirth: new Date(item.dateOfBirth).toISOString().split('T')[0]
-        }
-      })
-    }).finally(() => {
+    })
+    .finally(() => {
       loading.value = false
     })
 }
@@ -64,23 +40,38 @@ async function editFormSubmit() {
         name: item.name,
         relation: item.relation,
         dateOfBirth: new Date(item.dateOfBirth)
-      } 
+      }
     })
   }
 
-  return await fetch(`https://pouya-salamat-employee-task.liara.run/employee/${props.data.id}`, {
-    method: 'PUT',
-    headers: {
-      Authorization: '12345678910',
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(data)
+  const isAnyFieldEmpty = addFamilyMemberData.value.some((item) => {
+    return item.name === '' || item.relation === '' || item.dateOfBirth === ''
   })
-    .then((response) => {
-      if(response.status == 200) {
+
+  if (!isAnyFieldEmpty) {
+    try {
+      const response = await fetch(
+        `https://pouya-salamat-employee-task.liara.run/employee/${props.data.id}`,
+        {
+          method: 'PUT',
+          headers: {
+            Authorization: '12345678910',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        }
+      )
+      if (response.status === 200) {
         location.reload()
+      } else {
+        console.error('Error updating employee:', response.statusText)
       }
-    })
+    } catch (error) {
+      console.error('Fetch error:', error)
+    }
+  } else {
+    console.log('Please fill in all family member fields.')
+  }
 }
 
 async function deleteEmployee() {
@@ -96,53 +87,36 @@ async function deleteEmployee() {
   })
 }
 
-function findIn(id) {
-  const index = addFamilyMemberData.value.findIndex(item => item.id === id);
-  return index !== -1 ? index + 1 : null; 
-}
 
-function addFamilyMember() {
-  ++addFamilyId.value
-  let addFamilyObject = {
-    id: addFamilyId.value,
-    name: '',
-    relationship: '',
-    birthDate: ''
-  }
-  addFamilyMemberData.value.push(addFamilyObject)
-}
 
-function deleteFamilyMember(id) {
-  let fn = addFamilyMemberData.value.findIndex((item) => item.id === id)
-
-  if (fn !== -1) {
-    addFamilyMemberData.value.splice(fn, 1)
-  }
-}
 function updateOpenModalFn() {
   ++updateOpenModal.value
 }
+
 //...............................watch.......................................//
 
-watch(updateOpenModal , (newVal) => {
-  if(newVal <=1) {
+watch(updateOpenModal, (newVal) => {
+  if (newVal <= 1) {
     getAllEmployeeInfo()
-  }else {
+  } else {
     return
   }
 })
 
 // ..............................onMounted...................................//
-
-
 </script>
 
 <template>
   <div class="list">
-    <div @click="() => {
-      openModal = !openModal
-      updateOpenModalFn()
-    }" class="flx">
+    <div
+      @click="
+        () => {
+          openModal = !openModal
+          updateOpenModalFn()
+        }
+      "
+      class="flx"
+    >
       <div class="icon">
         <img src="../../../../public/free-arrow-down-icon-3101-thumb.png" />
       </div>
@@ -151,79 +125,17 @@ watch(updateOpenModal , (newVal) => {
         <h2>{{ props.data.lastName }}</h2>
       </div>
     </div>
-    
-    <h3 v-if="loading" >loading...</h3>
+    <h3 v-if="loading">loading...</h3>
     <div v-else id="completeData" :class="[openModal ? 'completeData' : 'hidden']">
       <button @click="deleteEmployee" class="delete-btn">حذف کاربر</button>
       <div class="edit">
         <div class="container">
           <div class="form">
-            <div class="section">
-              <h4>افزودن کارمند</h4>
-              <div class="form-group">
-                <label for="firstName">نام</label>
-                <input
-                  v-model="employeeValue.firstName"
-                  type="text"
-                  id="firstName"
-                  placeholder="احسان"
-                />
-              </div>
-              <div class="form-group">
-                <label for="lastName">نام خانوادگی</label>
-                <input
-                  v-model="employeeValue.lastName"
-                  type="text"
-                  id="lastName"
-                  placeholder="رجبی"
-                />
-              </div>
-              <div class="form-group">
-                <label for="email">ایمیل</label>
-                <input
-                  v-model="employeeValue.email"
-                  type="email"
-                  id="email"
-                  placeholder="example@gmail.com"
-                />
-              </div>
-              <div class="form-group">
-                <label for="birthDate">تاریخ تولد</label>
-                <input v-model="employeeValue.dateOfBirth" type="date" id="birthDate" />
-              </div>
-            </div>
-            <div class="section family">
-              <h4>اعضای خانواده</h4>
-              <div v-for="items in addFamilyMemberData" :key="items.id" class="family-member">
-                
-                <h5>#{{ findIn(items.id) }}</h5>
-                <div class="form-group">
-                  <label for="familyMemberName1">نام</label>
-                  <input
-                    v-model="items.name"
-                    type="text"
-                    id="familyMemberName1"
-                    placeholder="مریم قربانی"
-                  />
-                </div>
-                <div class="form-group">
-                  <label for="relationship1">نسبت</label>
-                  <select v-model="items.relation" id="relationship1">
-                    <option value="daughter">دختر</option>
-                    <option value="son">پسر</option>
-                    <option value="spouse">همسر</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label for="birthDate1">تاریخ تولد</label>
-                  <input v-model="items.dateOfBirth" type="date" id="birthDate1" />
-                </div>
-                <button @click="deleteFamilyMember(items.id)" type="button" class="delete-btn">
-                  حذف
-                </button>
-              </div>
-              <button @click="addFamilyMember">افزود عضو</button>
-            </div>
+            <formComponent
+              :ftchData="fetchData"
+              @response="(data) => (addFamilyMemberData = data)"
+              @employeeValueFromChildComponent="(data) => (employeeValue = data)"
+            />
             <div class="buttons">
               <button @click="editFormSubmit" type="submit" class="submit-btn">ادیت</button>
             </div>
@@ -233,129 +145,3 @@ watch(updateOpenModal , (newVal) => {
     </div>
   </div>
 </template>
-<style scoped>
-.list {
-  border: 1px solid #5151518f;
-  padding: 20px;
-  border-radius: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  cursor: pointer;
-  width: 100%;
-}
-.list #completeData {
-  transition: all 0.3s;
-  overflow: hidden;
-  direction: rtl;
-}
-.list .hidden {
-  height: 0;
-}
-.list .completeData {
-  height: auto;
-}
-
-.list .flx {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.list .name {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.list .icon img {
-  width: 15px;
-  height: 15px;
-  cursor: pointer;
-}
-.container {
-  width: 100%;
-  margin: 20px auto;
-  background-color: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
-
-.header {
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-.form {
-  display: flex;
-  flex-direction: column;
-}
-
-.section {
-  margin-bottom: 20px;
-}
-
-h4 {
-  margin-bottom: 10px;
-}
-
-.form-group {
-  margin-bottom: 15px;
-}
-
-label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
-}
-
-input,
-select {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-}
-
-.family-member {
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 10px;
-  margin-bottom: 15px;
-}
-
-h5 {
-  margin-bottom: 10px;
-}
-
-.delete-btn,
-.add-member-btn,
-.submit-btn,
-.cancel-btn {
-  background-color: #f44336;
-  color: white;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 5px;
-  cursor: pointer;
-  margin-top: 10px;
-}
-
-.add-member-btn {
-  background-color: #4caf50;
-  width: 100%;
-}
-
-.submit-btn {
-  background-color: #4caf50;
-}
-
-.cancel-btn {
-  background-color: #777;
-}
-
-.buttons {
-  display: flex;
-  justify-content: space-between;
-}
-</style>
