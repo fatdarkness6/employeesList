@@ -1,26 +1,21 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import renderEmployeeList from './renderEmployeeList/renderEmployeeList.vue'
 import addEmployee from '../addEmployee/addEmployee.vue'
+import { getSimpleEmployeeData } from '../../../apis/getSimpleEmployeeData'
 let employeeList = ref([])
 let showAddEmployee = ref(false)
 
-async function getEmployeeList() {
-  await fetch('https://pouya-salamat-employee-task.liara.run/employee')
-    .then((response) => response.json())
-    .then((e) => {
-      employeeList.value = e
-    })
-}
+getSimpleEmployeeData()
+  .then((response) => response.json())
+  .then((e) => {
+    employeeList.value = e
+})
 
 function changeValueOfAddEmployee() {
   showAddEmployee.value = true
 }
-//----------------------------------onMounted----------------------------//
 
-onMounted(() => {
-  getEmployeeList()
-})
 </script>
 
 <template>
@@ -32,10 +27,10 @@ onMounted(() => {
         </div>
         <renderEmployeeList v-for="data in employeeList" :key="data.id" :data="data" />
         <div class="addEmployee">
-            <div :class="[showAddEmployee ? 'show' : 'hidden']">
-              <addEmployee @response="(data) => showAddEmployee = data"/>
-            </div>
-            <button v-if="!showAddEmployee" @click="changeValueOfAddEmployee">افزودن کارمند</button>
+          <div :class="[showAddEmployee ? 'show' : 'hidden']">
+            <addEmployee @response="(data) => (showAddEmployee = data)" />
+          </div>
+          <button v-if="!showAddEmployee" @click="changeValueOfAddEmployee">افزودن کارمند</button>
         </div>
       </div>
     </div>

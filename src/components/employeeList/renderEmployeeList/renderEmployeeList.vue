@@ -1,6 +1,10 @@
 <script setup>
 import { ref, watch } from 'vue'
 import formComponent from '@/components/formComponent/formComponent.vue'
+import { getAllEmployeeData } from '../../../../apis/getAllEmployeeData'
+import { checkUserOnline } from '../../../../checkUserIsOnlineOrOffLine/check'
+import { editEmployeeData } from '../../../../apis/editEmployeeData'
+import { deleteEmployeeData } from '../../../../apis/deleteEmployeeData'
 
 let props = defineProps({
   data: Object
@@ -10,26 +14,29 @@ let openModal = ref(false)
 let updateOpenModal = ref(0)
 let fetchData = ref([])
 let addFamilyMemberData = ref([])
+let userIsOnOrOffLine = ref(false)
 let loading = ref(false)
 let employeeValue = ref({})
 
 //----------------------------------functions----------------------------//
 
-async function getAllEmployeeInfo() {
+function getAllEmployeeInfo() {
+  checkUserOnline(userIsOnOrOffLine)
   loading.value = true
-  return await fetch(`https://pouya-salamat-employee-task.liara.run/employee/${props.data.id}`, {
-    method: 'GET'
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      fetchData.value = data
-    })
-    .finally(() => {
-      loading.value = false
-    })
+  if (!userIsOnOrOffLine.value) {
+    getAllEmployeeData(props.data.id)
+      .then((response) => response.json())
+      .then((data) => {
+        fetchData.value = data
+      })
+      .finally(() => {
+        loading.value = false
+      })
+  }
 }
 
 async function editFormSubmit() {
+  checkUserOnline(userIsOnOrOffLine)
   let data = {
     firstName: employeeValue.value.firstName,
     lastName: employeeValue.value.lastName,
@@ -48,46 +55,36 @@ async function editFormSubmit() {
     return item.name === '' || item.relation === '' || item.dateOfBirth === ''
   })
 
-  if (!isAnyFieldEmpty) {
-    try {
-      const response = await fetch(
-        `https://pouya-salamat-employee-task.liara.run/employee/${props.data.id}`,
-        {
-          method: 'PUT',
-          headers: {
-            Authorization: '12345678910',
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(data)
+  if (
+    !isAnyFieldEmpty &&
+    !userIsOnOrOffLine.value &&
+    employeeValue.value.firstName &&
+    employeeValue.value.lastName &&
+    employeeValue.value.email &&
+    employeeValue.value.dateOfBirth
+  ) {
+    editEmployeeData(props.data.id, data)
+      .then((response) => {
+        if (response.status === 200) {
+          location.reload()
+        } else {
+          console.error('Error updating employee:', response.statusText)
         }
-      )
-      if (response.status === 200) {
-        location.reload()
-      } else {
-        console.error('Error updating employee:', response.statusText)
-      }
-    } catch (error) {
-      console.error('Fetch error:', error)
-    }
-  } else {
-    console.log('Please fill in all family member fields.')
+      })
+      .catch((error) => {
+        console.error('Error updating employee:', error)
+      })
   }
 }
 
 async function deleteEmployee() {
-  return await fetch(`https://pouya-salamat-employee-task.liara.run/employee/${props.data.id}`, {
-    method: 'DELETE',
-    headers: {
-      Authorization: '12345678910'
-    }
-  }).then((response) => {
+  checkUserOnline(userIsOnOrOffLine)
+  deleteEmployeeData(props.data.id).then((response) => {
     if (response.status == 204) {
       location.reload()
     }
   })
 }
-
-
 
 function updateOpenModalFn() {
   ++updateOpenModal.value
@@ -126,7 +123,11 @@ watch(updateOpenModal, (newVal) => {
       </div>
     </div>
     <h3 v-if="loading">loading...</h3>
-    <div v-else id="completeData" :class="[openModal ? 'completeData' : 'hidden']">
+    <div
+      v-else-if="!userIsOnOrOffLine"
+      id="completeData"
+      :class="[openModal ? 'completeData' : 'hidden']"
+    >
       <button @click="deleteEmployee" class="delete-btn">حذف کاربر</button>
       <div class="edit">
         <div class="container">

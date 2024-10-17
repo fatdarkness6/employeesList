@@ -1,7 +1,7 @@
 <script setup>
 import familyMemberComponent from '../employeeList/familyMemberComponent/familyMemberComponent.vue'
 import { onMounted, ref } from 'vue'
-
+import _ from 'lodash'
 
 let emit = defineEmits(['response', 'employeeValueFromChildComponent'])
 let props = defineProps({
@@ -15,39 +15,61 @@ let employeeValue = ref({
   email: '',
   dateOfBirth: ''
 })
+
 //................................functions.................................//
 
-function getDataToEmployeeValue() {
-    if(props.ftchData) {
-        let formattedDateOfBirth
-        if(Object.values(props?.ftchData).length > 0) {
-        formattedDateOfBirth =  new Date(props.ftchData.dateOfBirth).toISOString().split('T')[0]
-    }else {
-        formattedDateOfBirth = ''
+function giveDataToEmployeeValue() {
+  if (props.ftchData) {
+    let formattedDateOfBirth
+    if (Object.values(props?.ftchData).length > 0) {
+      formattedDateOfBirth = new Date(props.ftchData.dateOfBirth).toISOString().split('T')[0]
+    } else {
+      formattedDateOfBirth = ''
     }
- 
-  employeeValue.value = {
-    firstName: props.ftchData.firstName,
-    lastName: props.ftchData.lastName,
-    email: props.ftchData.email,
-    dateOfBirth: formattedDateOfBirth
+    employeeValue.value = {
+      firstName: props.ftchData.firstName,
+      lastName: props.ftchData.lastName,
+      email: props.ftchData.email,
+      dateOfBirth: formattedDateOfBirth
+    }
+    addFamilyMemberData.value = props?.ftchData?.family?.map((items) => {
+      let date
+      if (items.dateOfBirth !== undefined) {
+        date = new Date(items.dateOfBirth).toISOString().split('T')[0]
+      } else {
+        date = ''
+      }
+      return {
+        id: items.id,
+        name: items.name,
+        relation: items.relation,
+        dateOfBirth: date
+      }
+    })
   }
-    }
-    
+}
+
+function addFamilyMember() {
+  let addFamilyObject = {
+    name: '',
+    relation: '',
+    dateOfBirth: ''
+  }
+  addFamilyMemberData.value.push(addFamilyObject)
+}
+
+function removeFamilyMember(index) {
+  addFamilyMemberData.value.splice(index, 1) 
 }
 
 //................................onMounted.................................//
 
 onMounted(() => {
-  getDataToEmployeeValue()
+  giveDataToEmployeeValue()
   emit('response', addFamilyMemberData.value)
   emit('employeeValueFromChildComponent', employeeValue.value)
 })
 //----------------------------------emits----------------------------//
-
-
-
-
 </script>
 
 <template>
@@ -63,17 +85,23 @@ onMounted(() => {
     </div>
     <div class="form-group">
       <label for="email">ایمیل</label>
-      <input
-        v-model="employeeValue.email"
-        type="email"
-        id="email"
-        placeholder="example@gmail.com"
-      />
+      <input v-model="employeeValue.email" type="email" id="email" placeholder="example@gmail.com" />
     </div>
     <div class="form-group">
       <label for="birthDate">تاریخ تولد</label>
       <input v-model="employeeValue.dateOfBirth" type="date" id="birthDate" />
     </div>
   </div>
-  <familyMemberComponent :familyMember="props?.ftchData?.family" @response="(data) => (addFamilyMemberData = data)" />
+  
+  <div class="section family">
+    <h4>اعضای خانواده</h4>
+    <familyMemberComponent
+      v-for="(items, index) in addFamilyMemberData"
+      :key="index"
+      :index="index"
+      :items="items"
+      @deleteFamily="removeFamilyMember"
+    />
+    <button @click="addFamilyMember">افزودن عضو</button>
+  </div>
 </template>

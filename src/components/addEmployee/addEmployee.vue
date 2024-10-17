@@ -1,8 +1,11 @@
 <script setup>
 import { ref } from 'vue'
 import formComponent from '@/components/formComponent/formComponent.vue'
+import { addEmployeeData } from '../../../apis/addEmployeeData'
+import { checkUserOnline } from '../../../checkUserIsOnlineOrOffLine/check'
 
-// let emit = defineEmits(['response'])
+let emit = defineEmits(['response'])
+
 let addFamilyMemberData = ref([])
 let employeeValue = ref({
   firstName: '',
@@ -11,7 +14,7 @@ let employeeValue = ref({
   dateOfBirth: ''
 })
 
-
+let userIsOnOrOffLine = ref(false)
 
 //----------------------------------functions----------------------------//
 
@@ -45,22 +48,18 @@ async function submitForm() {
     employeeValue.value.firstName &&
     employeeValue.value.lastName &&
     employeeValue.value.email &&
-    employeeValue.value.dateOfBirth&&
+    employeeValue.value.dateOfBirth &&
+    !userIsOnOrOffLine.value &&
     !isAnyFieldEmpty
   ) {
-    fetch('https://pouya-salamat-employee-task.liara.run/employee', {
-      method: 'POST',
-      headers: {
-        Authorization: '12345678910',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(data)
-    }).then((response) => {
-      if (response.status == 201) {
-        location.reload()
-      }
-    })
-    // emit('response', false)
+    checkUserOnline(userIsOnOrOffLine)
+    if (!userIsOnOrOffLine.value) {
+      addEmployeeData(data).then((response) => {
+        if (response.status == 201) {
+          location.reload()
+        }
+      })
+    }
   }
 }
 </script>
@@ -74,7 +73,7 @@ async function submitForm() {
       />
       <div class="buttons">
         <button @click="submitForm" type="submit" class="submit-btn">افزودن</button>
-          <button @click="props.hiddenForm = false" type="reset" class="cancel-btn">تصرف</button>
+        <button @click="emit('response', false)" type="reset" class="cancel-btn">انصراف</button>
       </div>
     </div>
   </div>
