@@ -6,7 +6,7 @@ let props = defineProps({
   items: Object
 })
 
-let emit = defineEmits(['deleteFamily']) // برای حذف عضو
+let emit = defineEmits(['deleteFamily']) 
 
 //................................functions...............................//
 
@@ -15,7 +15,7 @@ function findIn(index) {
 }
 
 function deleteMember() {
-  emit('deleteFamily', props.index) // ارسال رویداد حذف به والد
+  emit('deleteFamily', props.index) 
 }
 </script>
 

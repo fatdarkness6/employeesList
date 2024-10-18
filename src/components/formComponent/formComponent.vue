@@ -1,7 +1,7 @@
 <script setup>
 import familyMemberComponent from '../employeeList/familyMemberComponent/familyMemberComponent.vue'
-import { onMounted, ref } from 'vue'
-import { useForm } from 'vee-validate'
+import { onMounted, ref , watch } from 'vue'
+import { useField, useForm } from 'vee-validate'
 import * as yup from 'yup'
 
 
@@ -11,31 +11,31 @@ let props = defineProps({
 })
 
 let addFamilyMemberData = ref([])
-let employeeValue = ref({
-  firstName: '',
-  lastName: '',
-  email: '',
-  dateOfBirth: ''
-})
 //-------------------------------validation-----------------------------//
 
 let schema = yup.object({
-  firstName: yup.string().required('First name is required'),
-  lastName: yup.string().required('Last name is required'),
-  email: yup.string().required('Email is required').email('Email is not valid'),
-  dateOfBirth: yup.date().required('Date of birth is required')
+  firstName: yup.string().required('نام الزامی است'),
+  lastName: yup.string().required('نام خانوادگی الزامی است'),
+  email: yup.string().email('ایمیل وارد شده صحیح نیست').required('ایمیل الزامی است'),
+  dateOfBirth: yup.string().required('تاریخ تولد الزامی است'),
+  family: yup.array().of(
+    yup.object().shape({
+      name: yup.string().required('نام الزامی است'),
+      relation: yup.string().required('رابطه الزامی است'),
+      dateOfBirth: yup.string().required('تاریخ تولد الزامی است'),
+    })
+  )
+}) 
+
+const { setFieldValue , handleSubmit } = useForm({
+  validationSchema: schema
+  
 })
 
-let { handleSubmit , errors } = useForm({
-  validationSchema: schema,
-  initialValues : {
-    firstName: '',
-    lastName: '',
-    email: '',
-    dateOfBirth: ''
-  }
-})
-
+let { value: firstName, errorMessage: firstNameError } = useField('firstName')
+let { value: lastName, errorMessage: lastNameError } = useField('lastName')
+let { value: email, errorMessage: emailError } = useField('email')
+let { value: dateOfBirth, errorMessage: dateOfBirthError } = useField('dateOfBirth')
 //................................functions.................................//
 
 
@@ -47,13 +47,10 @@ function giveDataToEmployeeValue() {
     } else {
       formattedDateOfBirth = ''
     }
-    employeeValue.value = {
-      firstName: props.ftchData.firstName,
-      lastName: props.ftchData.lastName,
-      email: props.ftchData.email,
-      dateOfBirth: formattedDateOfBirth
-    }
-
+    setFieldValue('firstName', props.ftchData.firstName)
+    setFieldValue('lastName', props.ftchData.lastName)
+    setFieldValue('email', props.ftchData.email)
+    setFieldValue('dateOfBirth', formattedDateOfBirth)
     addFamilyMemberData.value = props?.ftchData?.family?.map((items) => {
       let date
       if (items.dateOfBirth !== undefined) {
@@ -67,7 +64,10 @@ function giveDataToEmployeeValue() {
         relation: items.relation,
         dateOfBirth: date
       }
-    })
+    }) || []
+
+    setFieldValue('family', addFamilyMemberData.value);
+    console.log()
   }
 }
 
@@ -83,15 +83,28 @@ function addFamilyMember() {
 function removeFamilyMember(index) {
   addFamilyMemberData.value.splice(index, 1) 
 }
+//................................watch.................................//
+
+watch([firstName , lastName , email , dateOfBirth] , () => {
+  emit('employeeValueFromChildComponent' , {
+    firstName: firstName.value,
+    lastName: lastName.value,
+    email: email.value,
+    dateOfBirth: dateOfBirth.value
+  })
+})
 
 //................................onMounted.................................//
 
 onMounted(() => {
   giveDataToEmployeeValue()
   emit('response', addFamilyMemberData.value)
-  emit('employeeValueFromChildComponent', employeeValue.value)
 })
-//----------------------------------emits----------------------------//
+//----------------------------------defineExpose----------------------------//
+
+defineExpose({
+  handleSubmit
+})
 </script>
 
 <template>
@@ -99,23 +112,23 @@ onMounted(() => {
     <h4>افزودن کارمند</h4>
     <div class="form-group">
       <label for="firstName">نام</label>
-      <input v-model="employeeValue.firstName" type="text" id="firstName" placeholder="احسان" />
-      <div v-if="errors.firstName" class="error-message"><h3>{{ errors.firstName }}</h3></div>
+      <input v-model="firstName" type="text" id="firstName" placeholder="احسان" />
+      <div v-if="firstNameError" class="error-message"><h3>{{ firstNameError }}</h3></div>
     </div>
     <div class="form-group">
       <label for="lastName">نام خانوادگی</label>
-      <input v-model="employeeValue.lastName" type="text" id="lastName" placeholder="رجبی" />
-      <div v-if="errors.lastName" class="error-message"><h3>{{ errors.lastName }}</h3></div>
+      <input v-model="lastName" type="text" id="lastName" placeholder="رجبی" />
+      <div v-if="lastNameError" class="error-message"><h3>{{ lastNameError }}</h3></div>
     </div>
     <div class="form-group">
       <label for="email">ایمیل</label>
-      <input v-model="employeeValue.email" type="email" id="email" placeholder="example@gmail.com" />
-      <div v-if="errors.email" class="error-message"><h3>{{ errors.email }}</h3></div>
+      <input v-model="email" type="email" id="email" placeholder="example@gmail.com" />
+      <div class="error-message"><h3>{{ emailError}}</h3></div>
     </div>
     <div class="form-group">
       <label for="birthDate">تاریخ تولد</label>
-      <input v-model="employeeValue.dateOfBirth" type="date" id="birthDate" />
-      <div v-if="errors.dateOfBirth" class="error-message"><h3>{{ errors.dateOfBirth }}</h3></div>
+      <input v-model="dateOfBirth" type="date" id="birthDate" />
+      <div v-if="dateOfBirthError" class="error-message"><h3>{{ dateOfBirthError }}</h3></div>
     </div>
   </div>
   

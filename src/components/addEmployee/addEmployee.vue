@@ -4,70 +4,56 @@ import formComponent from '@/components/formComponent/formComponent.vue'
 import { addEmployeeData } from '../../../apis/addEmployeeData'
 import { checkUserOnline } from '../../../checkUserIsOnlineOrOffLine/check'
 
-
-
 let emit = defineEmits(['response'])
 
 let addFamilyMemberData = ref([])
-let employeeValue = ref({
-  firstName: '',
-  lastName: '',
-  email: '',
-  dateOfBirth: ''
-})
+let employeeValue = ref({})
 let loading = ref(false)
 let userIsOnOrOffLine = ref(false)
-
-
-//..................................veeValidate..........................//
-
-
+let child = ref(null)
 
 //----------------------------------functions----------------------------//
 async function submitForm() {
-  let data = {
-    firstName: employeeValue.value.firstName,
-    lastName: employeeValue.value.lastName,
-    email: employeeValue.value.email,
-    dateOfBirth: new Date(employeeValue.value.dateOfBirth),
-    family: addFamilyMemberData.value.map((item) => {
-      return {
-        name: item.name,
-        relation: item.relation,
-        dateOfBirth: new Date(item.dateOfBirth)
-      }
-    })
-  }
+ 
+  const isValid = await child.value.handleSubmit((values) => {
+    console.log('Form data:', values);
+  })();
 
-  let input = document.querySelectorAll('.selectInput')
-  input.forEach((item) => {
-    if (item.value == '') {
-      item.classList.add('error-input')
-    } else {
-      input.classList?.remove('error-input')
-    }
-  })
-  const isAnyFieldEmpty = addFamilyMemberData.value.some((item) => {
-    return item.name === '' || item.relation === '' || item.dateOfBirth === ''
-  })
-  if (
-    employeeValue.value.firstName &&
-    employeeValue.value.lastName &&
-    employeeValue.value.email &&
-    employeeValue.value.dateOfBirth &&
-    !userIsOnOrOffLine.value &&
-    !isAnyFieldEmpty
-  ) {
-    checkUserOnline(userIsOnOrOffLine)
-    if (!userIsOnOrOffLine.value) {
-      loading.value = true
-      addEmployeeData(data).then((response) => {
-        if (response.status == 201) {
-          location.reload()
-        }
-      }).finally(() => {
-        loading.value = false
-      })
+  if (isValid) {
+    let data = {
+      firstName: employeeValue.value.firstName,
+      lastName: employeeValue.value.lastName,
+      email: employeeValue.value.email,
+      dateOfBirth: new Date(employeeValue.value.dateOfBirth),
+      family: addFamilyMemberData.value.map((item) => {
+        return {
+          name: item.name,
+          relation: item.relation,
+          dateOfBirth: new Date(item.dateOfBirth),
+        };
+      }),
+    };
+
+    if (
+      employeeValue.value.firstName &&
+      employeeValue.value.lastName &&
+      employeeValue.value.email &&
+      employeeValue.value.dateOfBirth &&
+      !userIsOnOrOffLine.value
+    ) {
+      checkUserOnline(userIsOnOrOffLine);
+      if (!userIsOnOrOffLine.value) {
+        loading.value = true;
+        addEmployeeData(data)
+          .then((response) => {
+            if (response.status == 201) {
+              location.reload();
+            }
+          })
+          .finally(() => {
+            loading.value = false;
+          });
+      }
     }
   }
 }
@@ -79,9 +65,9 @@ async function submitForm() {
   <div class="container">
     <div class="form">
       <formComponent
+        ref="child"
         @response="(data) => (addFamilyMemberData = data)"
         @employeeValueFromChildComponent="(data) => (employeeValue = data)"
-        @submit="submitForm"
       />
       <div class="buttons">
         <button @click="submitForm" type="submit" class="submit-btn">افزودن</button>

@@ -6,6 +6,7 @@ import { checkUserOnline } from '../../../../checkUserIsOnlineOrOffLine/check'
 import { editEmployeeData } from '../../../../apis/editEmployeeData'
 import { deleteEmployeeData } from '../../../../apis/deleteEmployeeData'
 
+
 let props = defineProps({
   data: Object
 })
@@ -20,6 +21,8 @@ let loading = ref({
   loadingForEnything : false
 })
 let employeeValue = ref({})
+
+//----------------------------------validation----------------------------------//
 
 //----------------------------------functions----------------------------//
 
@@ -40,6 +43,8 @@ function getAllEmployeeInfo() {
 
 async function editFormSubmit() {
   checkUserOnline(userIsOnOrOffLine)
+
+
   let data = {
     firstName: employeeValue.value.firstName,
     lastName: employeeValue.value.lastName,
