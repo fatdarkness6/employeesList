@@ -1,11 +1,13 @@
 <script setup>
 import familyMemberComponent from '../employeeList/familyMemberComponent/familyMemberComponent.vue'
 import { onMounted, ref } from 'vue'
-import _ from 'lodash'
+import { useForm } from 'vee-validate'
+import * as yup from 'yup'
 
-let emit = defineEmits(['response', 'employeeValueFromChildComponent'])
+
+let emit = defineEmits(['response', 'employeeValueFromChildComponent' , 'submit'])
 let props = defineProps({
-  ftchData: Object
+  ftchData: Object,
 })
 
 let addFamilyMemberData = ref([])
@@ -15,8 +17,27 @@ let employeeValue = ref({
   email: '',
   dateOfBirth: ''
 })
+//-------------------------------validation-----------------------------//
+
+let schema = yup.object({
+  firstName: yup.string().required('First name is required'),
+  lastName: yup.string().required('Last name is required'),
+  email: yup.string().required('Email is required').email('Email is not valid'),
+  dateOfBirth: yup.date().required('Date of birth is required')
+})
+
+let { handleSubmit , errors } = useForm({
+  validationSchema: schema,
+  initialValues : {
+    firstName: '',
+    lastName: '',
+    email: '',
+    dateOfBirth: ''
+  }
+})
 
 //................................functions.................................//
+
 
 function giveDataToEmployeeValue() {
   if (props.ftchData) {
@@ -32,6 +53,7 @@ function giveDataToEmployeeValue() {
       email: props.ftchData.email,
       dateOfBirth: formattedDateOfBirth
     }
+
     addFamilyMemberData.value = props?.ftchData?.family?.map((items) => {
       let date
       if (items.dateOfBirth !== undefined) {
@@ -78,18 +100,22 @@ onMounted(() => {
     <div class="form-group">
       <label for="firstName">نام</label>
       <input v-model="employeeValue.firstName" type="text" id="firstName" placeholder="احسان" />
+      <div v-if="errors.firstName" class="error-message"><h3>{{ errors.firstName }}</h3></div>
     </div>
     <div class="form-group">
       <label for="lastName">نام خانوادگی</label>
       <input v-model="employeeValue.lastName" type="text" id="lastName" placeholder="رجبی" />
+      <div v-if="errors.lastName" class="error-message"><h3>{{ errors.lastName }}</h3></div>
     </div>
     <div class="form-group">
       <label for="email">ایمیل</label>
       <input v-model="employeeValue.email" type="email" id="email" placeholder="example@gmail.com" />
+      <div v-if="errors.email" class="error-message"><h3>{{ errors.email }}</h3></div>
     </div>
     <div class="form-group">
       <label for="birthDate">تاریخ تولد</label>
       <input v-model="employeeValue.dateOfBirth" type="date" id="birthDate" />
+      <div v-if="errors.dateOfBirth" class="error-message"><h3>{{ errors.dateOfBirth }}</h3></div>
     </div>
   </div>
   

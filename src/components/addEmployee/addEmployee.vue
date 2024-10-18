@@ -4,6 +4,8 @@ import formComponent from '@/components/formComponent/formComponent.vue'
 import { addEmployeeData } from '../../../apis/addEmployeeData'
 import { checkUserOnline } from '../../../checkUserIsOnlineOrOffLine/check'
 
+
+
 let emit = defineEmits(['response'])
 
 let addFamilyMemberData = ref([])
@@ -13,11 +15,15 @@ let employeeValue = ref({
   email: '',
   dateOfBirth: ''
 })
-
+let loading = ref(false)
 let userIsOnOrOffLine = ref(false)
 
-//----------------------------------functions----------------------------//
 
+//..................................veeValidate..........................//
+
+
+
+//----------------------------------functions----------------------------//
 async function submitForm() {
   let data = {
     firstName: employeeValue.value.firstName,
@@ -54,10 +60,13 @@ async function submitForm() {
   ) {
     checkUserOnline(userIsOnOrOffLine)
     if (!userIsOnOrOffLine.value) {
+      loading.value = true
       addEmployeeData(data).then((response) => {
         if (response.status == 201) {
           location.reload()
         }
+      }).finally(() => {
+        loading.value = false
       })
     }
   }
@@ -65,11 +74,14 @@ async function submitForm() {
 </script>
 
 <template>
+  <div class="backgroundLoading" v-if="loading"></div>
+  <h1 v-if="loading" class="center">loading...</h1>
   <div class="container">
     <div class="form">
       <formComponent
         @response="(data) => (addFamilyMemberData = data)"
         @employeeValueFromChildComponent="(data) => (employeeValue = data)"
+        @submit="submitForm"
       />
       <div class="buttons">
         <button @click="submitForm" type="submit" class="submit-btn">افزودن</button>

@@ -15,14 +15,17 @@ let updateOpenModal = ref(0)
 let fetchData = ref([])
 let addFamilyMemberData = ref([])
 let userIsOnOrOffLine = ref(false)
-let loading = ref(false)
+let loading = ref({
+  getAllEmployeeLoading : false,
+  loadingForEnything : false
+})
 let employeeValue = ref({})
 
 //----------------------------------functions----------------------------//
 
 function getAllEmployeeInfo() {
   checkUserOnline(userIsOnOrOffLine)
-  loading.value = true
+  loading.value.getAllEmployeeLoading = true
   if (!userIsOnOrOffLine.value) {
     getAllEmployeeData(props.data.id)
       .then((response) => response.json())
@@ -30,7 +33,7 @@ function getAllEmployeeInfo() {
         fetchData.value = data
       })
       .finally(() => {
-        loading.value = false
+        loading.value.getAllEmployeeLoading = false
       })
   }
 }
@@ -63,6 +66,7 @@ async function editFormSubmit() {
     employeeValue.value.email &&
     employeeValue.value.dateOfBirth
   ) {
+    loading.value.loadingForEnything = true
     editEmployeeData(props.data.id, data)
       .then((response) => {
         if (response.status === 200) {
@@ -73,16 +77,21 @@ async function editFormSubmit() {
       })
       .catch((error) => {
         console.error('Error updating employee:', error)
+      }).finally(() => {
+        loading.value.loadingForEnything = false
       })
   }
 }
 
 async function deleteEmployee() {
   checkUserOnline(userIsOnOrOffLine)
+  loading.value.loadingForEnything = true
   deleteEmployeeData(props.data.id).then((response) => {
     if (response.status == 204) {
       location.reload()
     }
+  }).finally(() => {
+    loading.value.loadingForEnything = false
   })
 }
 
@@ -105,6 +114,7 @@ watch(updateOpenModal, (newVal) => {
 
 <template>
   <div class="list">
+    <div class="backgroundLoading" v-if="loading.loadingForEnything"></div>
     <div
       @click="
         () => {
@@ -122,13 +132,14 @@ watch(updateOpenModal, (newVal) => {
         <h2>{{ props.data.lastName }}</h2>
       </div>
     </div>
-    <h3 v-if="loading">loading...</h3>
+    <h3 v-if="loading.getAllEmployeeLoading">loading...</h3>
     <div
       v-else-if="!userIsOnOrOffLine"
       id="completeData"
       :class="[openModal ? 'completeData' : 'hidden']"
     >
       <button @click="deleteEmployee" class="delete-btn">حذف کاربر</button>
+      <h1 v-if="loading.loadingForEnything" class="center">loading...</h1>
       <div class="edit">
         <div class="container">
           <div class="form">
