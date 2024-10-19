@@ -14,10 +14,17 @@ let child = ref(null)
 
 //----------------------------------functions----------------------------//
 async function submitForm() {
- 
   const isValid = await child.value.handleSubmit((values) => {
-    console.log('Form data:', values);
-  })();
+    console.log('Form data:', values)
+
+    // Assign the form values to your data models
+    employeeValue.value = values
+
+    // Check if family data exists and assign it to the model
+    addFamilyMemberData.value = values.family || []
+
+    return true
+  })()
 
   if (isValid) {
     let data = {
@@ -29,10 +36,10 @@ async function submitForm() {
         return {
           name: item.name,
           relation: item.relation,
-          dateOfBirth: new Date(item.dateOfBirth),
-        };
-      }),
-    };
+          dateOfBirth: new Date(item.dateOfBirth)
+        }
+      })
+    }
 
     if (
       employeeValue.value.firstName &&
@@ -41,18 +48,18 @@ async function submitForm() {
       employeeValue.value.dateOfBirth &&
       !userIsOnOrOffLine.value
     ) {
-      checkUserOnline(userIsOnOrOffLine);
+      checkUserOnline(userIsOnOrOffLine)
       if (!userIsOnOrOffLine.value) {
-        loading.value = true;
+        loading.value = true
         addEmployeeData(data)
           .then((response) => {
             if (response.status == 201) {
-              location.reload();
+              location.reload()
             }
           })
           .finally(() => {
-            loading.value = false;
-          });
+            loading.value = false
+          })
       }
     }
   }

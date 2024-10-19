@@ -21,6 +21,7 @@ let loading = ref({
   loadingForEnything : false
 })
 let employeeValue = ref({})
+let child = ref(null)
 
 //----------------------------------validation----------------------------------//
 
@@ -44,6 +45,17 @@ function getAllEmployeeInfo() {
 async function editFormSubmit() {
   checkUserOnline(userIsOnOrOffLine)
 
+  const isValid = await child.value.handleSubmit((values) => {
+    console.log('Form data:', values)
+
+    // Assign the form values to your data models
+    employeeValue.value = values
+
+    // Check if family data exists and assign it to the model
+    addFamilyMemberData.value = values.family || []
+
+    return true
+  })()
 
   let data = {
     firstName: employeeValue.value.firstName,
@@ -58,19 +70,7 @@ async function editFormSubmit() {
       }
     })
   }
-
-  const isAnyFieldEmpty = addFamilyMemberData.value.some((item) => {
-    return item.name === '' || item.relation === '' || item.dateOfBirth === ''
-  })
-
-  if (
-    !isAnyFieldEmpty &&
-    !userIsOnOrOffLine.value &&
-    employeeValue.value.firstName &&
-    employeeValue.value.lastName &&
-    employeeValue.value.email &&
-    employeeValue.value.dateOfBirth
-  ) {
+  if (isValid && !userIsOnOrOffLine.value) {
     loading.value.loadingForEnything = true
     editEmployeeData(props.data.id, data)
       .then((response) => {
@@ -91,13 +91,16 @@ async function editFormSubmit() {
 async function deleteEmployee() {
   checkUserOnline(userIsOnOrOffLine)
   loading.value.loadingForEnything = true
-  deleteEmployeeData(props.data.id).then((response) => {
+  if(!userIsOnOrOffLine.value) {
+    deleteEmployeeData(props.data.id).then((response) => {
     if (response.status == 204) {
       location.reload()
     }
   }).finally(() => {
     loading.value.loadingForEnything = false
   })
+  }
+  
 }
 
 function updateOpenModalFn() {
@@ -149,6 +152,7 @@ watch(updateOpenModal, (newVal) => {
         <div class="container">
           <div class="form">
             <formComponent
+              ref="child"
               :ftchData="fetchData"
               @response="(data) => (addFamilyMemberData = data)"
               @employeeValueFromChildComponent="(data) => (employeeValue = data)"
