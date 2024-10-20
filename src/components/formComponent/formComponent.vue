@@ -1,5 +1,5 @@
 <script setup>
-import familyMemberComponent from '../employeeList/familyMemberComponent/familyMemberComponent.vue'
+import familyMemberComponent from './familyMemberComponent/familyMemberComponent.vue'
 import { onMounted, ref, watch } from 'vue'
 import { useField, useForm } from 'vee-validate'
 import * as yup from 'yup'
