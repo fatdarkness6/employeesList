@@ -1,6 +1,6 @@
 <script setup>
 import { ref , onMounted } from 'vue'
-import renderEmployeeList from './renderEmployeeList/renderEmployeeList.vue'
+import renderEmployeeList from './renderEmployees/renderEmployees.vue'
 import addEmployee from './addEmployee/addEmployee.vue'
 import { allApis } from '@/apis/allApis'
 let employeeList = ref([])

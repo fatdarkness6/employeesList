@@ -2,8 +2,7 @@
 import { ref } from 'vue'
 import formComponent from '../formComponent/formComponent.vue'
 import { checkUserOnline } from '@/checkUserIsOnlineOrOffLine/check'
-
-
+import { useNotification } from '@kyvg/vue3-notification'
 
 let emit = defineEmits(['response'])
 let props = defineProps({
@@ -15,6 +14,9 @@ let employeeValue = ref({})
 let loading = ref(false)
 let userIsOnOrOffLine = ref(false)
 let child = ref(null)
+
+// Notification setup
+const { notify } = useNotification()
 
 //----------------------------------functions----------------------------//
 async function submitForm() {
@@ -41,11 +43,26 @@ async function submitForm() {
     checkUserOnline(userIsOnOrOffLine)
     if (!userIsOnOrOffLine.value) {
       loading.value = true
-      props.allApis.addEmployeeData(data)
+      props.allApis
+        .addEmployeeData(data)
         .then((response) => {
           if (response.status == 201) {
-            location.reload()
+            setTimeout(() => {
+              location.reload()
+            }, 3000)
+            notify({
+              title: 'Success',
+              text: 'Add employee successfull ',
+              type: 'success'
+            })
           }
+        })
+        .catch(() => {
+          notify({
+            title: 'Error',
+            text: 'Error deleting employee: ',
+            type: 'error'
+          })
         })
         .finally(() => {
           loading.value = false

@@ -1,49 +1,52 @@
 <script setup>
-import { ref, watch } from 'vue'
-import formComponent from '../formComponent/formComponent.vue'
-import { checkUserOnline } from '@/checkUserIsOnlineOrOffLine/check'
-
+import { ref, watch } from 'vue';
+import formComponent from '../formComponent/formComponent.vue';
+import { checkUserOnline } from '@/checkUserIsOnlineOrOffLine/check';
+import { useNotification } from '@kyvg/vue3-notification'; // Import notifications
 
 let props = defineProps({
   data: Object,
-  allApis: Object
-})
+  allApis: Object,
+});
 
-let openModal = ref(false)
-let updateOpenModal = ref(0)
-let fetchData = ref([])
-let addFamilyMemberData = ref([])
-let userIsOnOrOffLine = ref(false)
+let openModal = ref(false);
+let updateOpenModal = ref(0);
+let fetchData = ref([]);
+let addFamilyMemberData = ref([]);
+let userIsOnOrOffLine = ref(false);
 let loading = ref({
   getAllEmployeeLoading: false,
-  loadingForEnything: false
-})
-let employeeValue = ref({})
-let child = ref(null)
+  loadingForEnything: false,
+});
+let employeeValue = ref({});
+let child = ref(null);
+
+// Notification setup
+const { notify } = useNotification();
 
 //----------------------------------functions----------------------------//
 
 function getAllEmployeeInfo() {
-  checkUserOnline(userIsOnOrOffLine)
-  loading.value.getAllEmployeeLoading = true
+  checkUserOnline(userIsOnOrOffLine);
+  loading.value.getAllEmployeeLoading = true;
   if (!userIsOnOrOffLine.value) {
     props.allApis.getAllEmployeeData(props.data.id)
       .then((data) => {
-        fetchData.value = data.data
+        fetchData.value = data.data;
       })
       .finally(() => {
-        loading.value.getAllEmployeeLoading = false
-      })
+        loading.value.getAllEmployeeLoading = false;
+      });
   }
 }
 
 async function editFormSubmit() {
-  checkUserOnline(userIsOnOrOffLine)
+  checkUserOnline(userIsOnOrOffLine);
   const isValid = await child.value.handleSubmit((values) => {
-    employeeValue.value = values
-    addFamilyMemberData.value = values.family || []
-    return true
-  })()
+    employeeValue.value = values;
+    addFamilyMemberData.value = values.family || [];
+    return true;
+  })();
 
   let data = {
     firstName: employeeValue.value.firstName,
@@ -54,58 +57,87 @@ async function editFormSubmit() {
       return {
         name: item.name,
         relation: item.relation,
-        dateOfBirth: new Date(item.dateOfBirth)
-      }
-    })
-  }
+        dateOfBirth: new Date(item.dateOfBirth),
+      };
+    }),
+  };
+
   if (isValid && !userIsOnOrOffLine.value) {
-    loading.value.loadingForEnything = true
+    loading.value.loadingForEnything = true;
     props.allApis.editEmployeeData(props.data.id, data)
       .then((response) => {
         if (response.status === 200) {
-          location.reload()
+          notify({
+            title: 'Success',
+            text: 'Employee data updated successfully!',
+            type: 'success',
+          });
+          reloadPage()
         } else {
-          console.error('Error updating employee:', response.statusText)
+          notify({
+            title: 'Error',
+            text: 'Error updating employee: ',
+            type: 'error',
+          });
         }
       })
       .catch((error) => {
-        console.error('Error updating employee:', error)
+        notify({
+          title: 'Error',
+          text: 'Error updating employee: ' + (error.response?.data?.message || 'Unknown error'),
+          type: 'error',
+        });
       })
       .finally(() => {
-        loading.value.loadingForEnything = false
-      })
+        loading.value.loadingForEnything = false;
+      });
   }
 }
 
 async function deleteEmployee() {
-  checkUserOnline(userIsOnOrOffLine)
-  loading.value.loadingForEnything = true
+  checkUserOnline(userIsOnOrOffLine);
+  loading.value.loadingForEnything = true;
   if (!userIsOnOrOffLine.value) {
     props.allApis.deleteEmployeeData(props.data.id)
       .then((response) => {
-        if (response.status == 204) {
-          location.reload()
+        if (response.status === 204) {
+          notify({
+            title: 'Success',
+            text: 'Employee deleted successfully!',
+            type: 'success',
+          });
+          reloadPage()
         }
       })
-      .finally(() => {
-        loading.value.loadingForEnything = false
+      .catch(() => {
+        notify({
+          title: 'Error',
+          text: 'Error deleting employee: ',
+          type: 'error',
+        });
       })
+      .finally(() => {
+        loading.value.loadingForEnything = false;
+      });
   }
 }
 
 function updateOpenModalFn() {
-  ++updateOpenModal.value
+  ++updateOpenModal.value;
 }
 
+function reloadPage() {
+  setTimeout(() => {
+    location.reload()
+  }, 3000);
+}
 //...............................watch.......................................//
 
 watch(updateOpenModal, (newVal) => {
   if (newVal <= 1) {
-    getAllEmployeeInfo()
-  } else {
-    return
+    getAllEmployeeInfo();
   }
-})
+});
 
 // ..............................onMounted...................................//
 </script>
