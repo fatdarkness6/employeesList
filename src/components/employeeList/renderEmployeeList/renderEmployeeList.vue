@@ -1,14 +1,12 @@
 <script setup>
 import { ref, watch } from 'vue'
-import formComponent from '@/components/formComponent/formComponent.vue'
-import { getAllEmployeeData } from '../../../../apis/getAllEmployeeData'
-import { checkUserOnline } from '../../../../checkUserIsOnlineOrOffLine/check'
-import { editEmployeeData } from '../../../../apis/editEmployeeData'
-import { deleteEmployeeData } from '../../../../apis/deleteEmployeeData'
+import formComponent from '../formComponent/formComponent.vue'
+import { checkUserOnline } from '@/checkUserIsOnlineOrOffLine/check'
 
 
 let props = defineProps({
-  data: Object
+  data: Object,
+  allApis: Object
 })
 
 let openModal = ref(false)
@@ -17,13 +15,11 @@ let fetchData = ref([])
 let addFamilyMemberData = ref([])
 let userIsOnOrOffLine = ref(false)
 let loading = ref({
-  getAllEmployeeLoading : false,
-  loadingForEnything : false
+  getAllEmployeeLoading: false,
+  loadingForEnything: false
 })
 let employeeValue = ref({})
 let child = ref(null)
-
-//----------------------------------validation----------------------------------//
 
 //----------------------------------functions----------------------------//
 
@@ -31,10 +27,9 @@ function getAllEmployeeInfo() {
   checkUserOnline(userIsOnOrOffLine)
   loading.value.getAllEmployeeLoading = true
   if (!userIsOnOrOffLine.value) {
-    getAllEmployeeData(props.data.id)
-      .then((response) => response.json())
+    props.allApis.getAllEmployeeData(props.data.id)
       .then((data) => {
-        fetchData.value = data
+        fetchData.value = data.data
       })
       .finally(() => {
         loading.value.getAllEmployeeLoading = false
@@ -45,12 +40,8 @@ function getAllEmployeeInfo() {
 async function editFormSubmit() {
   checkUserOnline(userIsOnOrOffLine)
   const isValid = await child.value.handleSubmit((values) => {
-    console.log('Form data:', values)
     employeeValue.value = values
-
-
     addFamilyMemberData.value = values.family || []
-
     return true
   })()
 
@@ -69,7 +60,7 @@ async function editFormSubmit() {
   }
   if (isValid && !userIsOnOrOffLine.value) {
     loading.value.loadingForEnything = true
-    editEmployeeData(props.data.id, data)
+    props.allApis.editEmployeeData(props.data.id, data)
       .then((response) => {
         if (response.status === 200) {
           location.reload()
@@ -79,7 +70,8 @@ async function editFormSubmit() {
       })
       .catch((error) => {
         console.error('Error updating employee:', error)
-      }).finally(() => {
+      })
+      .finally(() => {
         loading.value.loadingForEnything = false
       })
   }
@@ -88,16 +80,17 @@ async function editFormSubmit() {
 async function deleteEmployee() {
   checkUserOnline(userIsOnOrOffLine)
   loading.value.loadingForEnything = true
-  if(!userIsOnOrOffLine.value) {
-    deleteEmployeeData(props.data.id).then((response) => {
-    if (response.status == 204) {
-      location.reload()
-    }
-  }).finally(() => {
-    loading.value.loadingForEnything = false
-  })
+  if (!userIsOnOrOffLine.value) {
+    props.allApis.deleteEmployeeData(props.data.id)
+      .then((response) => {
+        if (response.status == 204) {
+          location.reload()
+        }
+      })
+      .finally(() => {
+        loading.value.loadingForEnything = false
+      })
   }
-  
 }
 
 function updateOpenModalFn() {

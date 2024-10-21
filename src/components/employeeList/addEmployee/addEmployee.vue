@@ -1,10 +1,14 @@
 <script setup>
 import { ref } from 'vue'
-import formComponent from '@/components/formComponent/formComponent.vue'
-import { addEmployeeData } from '../../../apis/addEmployeeData'
-import { checkUserOnline } from '../../../checkUserIsOnlineOrOffLine/check'
+import formComponent from '../formComponent/formComponent.vue'
+import { checkUserOnline } from '@/checkUserIsOnlineOrOffLine/check'
+
+
 
 let emit = defineEmits(['response'])
+let props = defineProps({
+  allApis: Object
+})
 
 let addFamilyMemberData = ref([])
 let employeeValue = ref({})
@@ -15,14 +19,8 @@ let child = ref(null)
 //----------------------------------functions----------------------------//
 async function submitForm() {
   const isValid = await child.value.handleSubmit((values) => {
-    console.log('Form data:', values)
-
-    // Assign the form values to your data models
     employeeValue.value = values
-
-    // Check if family data exists and assign it to the model
     addFamilyMemberData.value = values.family || []
-
     return true
   })()
 
@@ -31,36 +29,27 @@ async function submitForm() {
       firstName: employeeValue.value.firstName,
       lastName: employeeValue.value.lastName,
       email: employeeValue.value.email,
-      dateOfBirth: new Date(employeeValue.value.dateOfBirth),
+      dateOfBirth: new Date(employeeValue.value.dateOfBirth).toISOString(),
       family: addFamilyMemberData.value.map((item) => {
         return {
           name: item.name,
           relation: item.relation,
-          dateOfBirth: new Date(item.dateOfBirth)
+          dateOfBirth: new Date(item.dateOfBirth).toISOString()
         }
       })
     }
-
-    if (
-      employeeValue.value.firstName &&
-      employeeValue.value.lastName &&
-      employeeValue.value.email &&
-      employeeValue.value.dateOfBirth &&
-      !userIsOnOrOffLine.value
-    ) {
-      checkUserOnline(userIsOnOrOffLine)
-      if (!userIsOnOrOffLine.value) {
-        loading.value = true
-        addEmployeeData(data)
-          .then((response) => {
-            if (response.status == 201) {
-              location.reload()
-            }
-          })
-          .finally(() => {
-            loading.value = false
-          })
-      }
+    checkUserOnline(userIsOnOrOffLine)
+    if (!userIsOnOrOffLine.value) {
+      loading.value = true
+      props.allApis.addEmployeeData(data)
+        .then((response) => {
+          if (response.status == 201) {
+            location.reload()
+          }
+        })
+        .finally(() => {
+          loading.value = false
+        })
     }
   }
 }

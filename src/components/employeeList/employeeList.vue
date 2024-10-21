@@ -1,20 +1,24 @@
 <script setup>
-import { ref } from 'vue'
+import { ref , onMounted } from 'vue'
 import renderEmployeeList from './renderEmployeeList/renderEmployeeList.vue'
-import addEmployee from '../addEmployee/addEmployee.vue'
-import { getSimpleEmployeeData } from '../../../apis/getSimpleEmployeeData'
+import addEmployee from './addEmployee/addEmployee.vue'
+import { allApis } from '@/apis/allApis'
 let employeeList = ref([])
 let showAddEmployee = ref(false)
 
-getSimpleEmployeeData()
-  .then((response) => response.json())
-  .then((e) => {
-    employeeList.value = e
-})
+let request = async () => {
+
+  await allApis.getSimpleEmployeeData().then((response) => (employeeList.value = response.data))
+}
+
+//...................................functions...............................//
 
 function changeValueOfAddEmployee() {
   showAddEmployee.value = true
 }
+
+//...................................onMounted...............................//
+onMounted(request)
 
 </script>
 
@@ -25,10 +29,10 @@ function changeValueOfAddEmployee() {
         <div class="title">
           <h2>کارمندان</h2>
         </div>
-        <renderEmployeeList v-for="data in employeeList" :key="data.id" :data="data" />
+        <renderEmployeeList v-for="data in employeeList" :key="data.id" :data="data" :allApis="allApis" />
         <div class="addEmployee">
           <div :class="[showAddEmployee ? 'show' : 'hidden']">
-            <addEmployee @response="(data) => (showAddEmployee = data)" />
+            <addEmployee @response="(data) => (showAddEmployee = data)" :allApis="allApis"/>
           </div>
           <button v-if="!showAddEmployee" @click="changeValueOfAddEmployee">افزودن کارمند</button>
         </div>

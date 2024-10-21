@@ -12,16 +12,16 @@ let props = defineProps({
 let addFamilyMemberData = ref([])
 //-------------------------------validation-----------------------------//
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-//email('ایمیل وارد شده صحیح نیست')
+const nameRegex = /^[\p{L}\s]+$/u;
 
 let schema = yup.object({
-  firstName: yup.string().required('نام الزامی است'),
-  lastName: yup.string().required('نام خانوادگی الزامی است'),
+  firstName: yup.string().matches(nameRegex , 'لطفا نامتان را درست وارد کنید').required('نام الزامی است'),
+  lastName: yup.string().matches(nameRegex , 'لطفا نام خانوادگیتان را درست وارد کنید').required('نام خانوادگی الزامی است'),
   email: yup.string().matches(emailRegex , 'لطفا ایمیل را درست وارد کنید').required('ایمیل الزامی است'),
   dateOfBirth: yup.string().required('تاریخ تولد الزامی است'),
   family: yup.array().of(
     yup.object().shape({
-      name: yup.string().required('نام الزامی است'),
+      name: yup.string().matches(nameRegex , 'لطفا نام خانواده خود را درست وارد کنید').required('نام الزامی است'),
       relation: yup.string().required('رابطه الزامی است'),
       dateOfBirth: yup.string().required('تاریخ تولد الزامی است')
     })
@@ -42,7 +42,8 @@ function giveDataToEmployeeValue() {
   if (props.ftchData) {
     let formattedDateOfBirth
     if (Object.values(props?.ftchData).length > 0) {
-      formattedDateOfBirth = new Date(props.ftchData.dateOfBirth).toISOString().split('T')[0]
+      formattedDateOfBirth = new Date(props?.ftchData?.dateOfBirth).toISOString().split('T')[0] || ""
+      console.log(formattedDateOfBirth)
     } else {
       formattedDateOfBirth = ''
     }
@@ -52,7 +53,6 @@ function giveDataToEmployeeValue() {
     setFieldValue('dateOfBirth', formattedDateOfBirth)
     addFamilyMemberData.value =
       props?.ftchData?.family?.map((items) => {
-        console.log(items.id)
         let date
         if (items.dateOfBirth !== undefined) {
           date = new Date(items.dateOfBirth).toISOString().split('T')[0]
