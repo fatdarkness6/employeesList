@@ -5,10 +5,15 @@ import addEmployee from './addEmployee/addEmployee.vue'
 import { allApis } from '@/apis/allApis'
 let employeeList = ref([])
 let showAddEmployee = ref(false)
+let loading = ref(false)
 
 let request = async () => {
-
-  await allApis.getSimpleEmployeeData().then((response) => (employeeList.value = response.data))
+  loading.value = true
+  await allApis.getSimpleEmployeeData()
+  .then((response) => (employeeList.value = response.data))
+  .finally(() => {
+    loading.value = false
+  })
 }
 
 //...................................functions...............................//
@@ -29,7 +34,8 @@ onMounted(request)
         <div class="title">
           <h2>کارمندان</h2>
         </div>
-        <renderEmployeeList v-for="data in employeeList" :key="data.id" :data="data" :allApis="allApis" />
+        <div v-if="loading"><h1>...loading</h1></div>
+        <renderEmployeeList v-else v-for="data in employeeList" :key="data.id" :data="data" :allApis="allApis" />
         <div class="addEmployee">
           <div :class="[showAddEmployee ? 'show' : 'hidden']">
             <addEmployee @response="(data) => (showAddEmployee = data)" :allApis="allApis"/>
