@@ -44,14 +44,11 @@ function getAllEmployeeInfo() {
 
 async function editFormSubmit() {
   checkUserOnline(userIsOnOrOffLine)
-
   const isValid = await child.value.handleSubmit((values) => {
     console.log('Form data:', values)
-
-    // Assign the form values to your data models
     employeeValue.value = values
 
-    // Check if family data exists and assign it to the model
+
     addFamilyMemberData.value = values.family || []
 
     return true

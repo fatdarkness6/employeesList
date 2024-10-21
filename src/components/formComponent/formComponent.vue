@@ -11,11 +11,13 @@ let props = defineProps({
 
 let addFamilyMemberData = ref([])
 //-------------------------------validation-----------------------------//
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+//email('ایمیل وارد شده صحیح نیست')
 
 let schema = yup.object({
   firstName: yup.string().required('نام الزامی است'),
   lastName: yup.string().required('نام خانوادگی الزامی است'),
-  email: yup.string().email('ایمیل وارد شده صحیح نیست').required('ایمیل الزامی است'),
+  email: yup.string().matches(emailRegex , 'لطفا ایمیل را درست وارد کنید').required('ایمیل الزامی است'),
   dateOfBirth: yup.string().required('تاریخ تولد الزامی است'),
   family: yup.array().of(
     yup.object().shape({
