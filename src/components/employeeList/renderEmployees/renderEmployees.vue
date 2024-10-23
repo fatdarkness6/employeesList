@@ -2,11 +2,10 @@
 import { ref, watch } from 'vue';
 import formComponent from '../formComponent/formComponent.vue';
 import { checkUserOnline } from '@/checkUserIsOnlineOrOffLine/check';
-import { useNotification } from '@kyvg/vue3-notification'; // Import notifications
+import { deleteEmployeeData , editEmployeeData , getAllEmployeeData} from '../../../apis/allApis'
 
 let props = defineProps({
   data: Object,
-  allApis: Object,
 });
 
 let openModal = ref(false);
@@ -16,13 +15,12 @@ let addFamilyMemberData = ref([]);
 let userIsOnOrOffLine = ref(false);
 let loading = ref({
   getAllEmployeeLoading: false,
-  loadingForEnything: false,
+  editEmployeeLoading: false,
+  deleteLoading: false,
 });
 let employeeValue = ref({});
 let child = ref(null);
 
-// Notification setup
-const { notify } = useNotification();
 
 //----------------------------------functions----------------------------//
 
@@ -30,7 +28,7 @@ function getAllEmployeeInfo() {
   checkUserOnline(userIsOnOrOffLine);
   loading.value.getAllEmployeeLoading = true;
   if (!userIsOnOrOffLine.value) {
-    props.allApis.getAllEmployeeData(props.data.id)
+    getAllEmployeeData(props.data.id)
       .then((data) => {
         fetchData.value = data.data;
       })
@@ -41,6 +39,7 @@ function getAllEmployeeInfo() {
 }
 
 async function editFormSubmit() {
+  
   checkUserOnline(userIsOnOrOffLine);
   const isValid = await child.value.handleSubmit((values) => {
     employeeValue.value = values;
@@ -63,73 +62,30 @@ async function editFormSubmit() {
   };
 
   if (isValid && !userIsOnOrOffLine.value) {
-    loading.value.loadingForEnything = true;
-    props.allApis.editEmployeeData(props.data.id, data)
-      .then((response) => {
-        if (response.status === 200) {
-          notify({
-            title: 'Success',
-            text: 'Employee data updated successfully!',
-            type: 'success',
-          });
-          reloadPage()
-        } else {
-          notify({
-            title: 'Error',
-            text: 'Error updating employee: ',
-            type: 'error',
-          });
-        }
-      })
-      .catch((error) => {
-        notify({
-          title: 'Error',
-          text: 'Error updating employee: ' + (error.response?.data?.message || 'Unknown error'),
-          type: 'error',
-        });
-      })
+    loading.value.editEmployeeLoading = true;
+
+      editEmployeeData(props.data.id, data)
       .finally(() => {
-        loading.value.loadingForEnything = false;
+        loading.value.editEmployeeLoading = false;
       });
   }
 }
 
 async function deleteEmployee() {
+  
   checkUserOnline(userIsOnOrOffLine);
-  loading.value.loadingForEnything = true;
+  loading.value.deleteLoading = true;
   if (!userIsOnOrOffLine.value) {
-    props.allApis.deleteEmployeeData(props.data.id)
-      .then((response) => {
-        if (response.status === 204) {
-          notify({
-            title: 'Success',
-            text: 'Employee deleted successfully!',
-            type: 'success',
-          });
-          reloadPage()
-        }
-      })
-      .catch(() => {
-        notify({
-          title: 'Error',
-          text: 'Error deleting employee: ',
-          type: 'error',
-        });
-      })
+
+    deleteEmployeeData(props.data.id)
       .finally(() => {
-        loading.value.loadingForEnything = false;
+        loading.value.deleteLoading = false;
       });
   }
 }
 
 function updateOpenModalFn() {
   ++updateOpenModal.value;
-}
-
-function reloadPage() {
-  setTimeout(() => {
-    location.reload()
-  }, 3000);
 }
 //...............................watch.......................................//
 
@@ -144,7 +100,6 @@ watch(updateOpenModal, (newVal) => {
 
 <template>
   <div class="list">
-    <div class="backgroundLoading" v-if="loading.loadingForEnything"></div>
     <div
       @click="
         () => {
@@ -155,7 +110,7 @@ watch(updateOpenModal, (newVal) => {
       class="flx"
     >
       <div class="icon">
-        <img src="../../../../public/free-arrow-down-icon-3101-thumb.png" />
+        <img src="/free-arrow-down-icon-3101-thumb.png" />
       </div>
       <div class="name">
         <h2>{{ props.data.firstName }}</h2>
@@ -169,7 +124,8 @@ watch(updateOpenModal, (newVal) => {
       :class="[openModal ? 'completeData' : 'hidden']"
     >
       <button @click="deleteEmployee" class="delete-btn">حذف کاربر</button>
-      <h1 v-if="loading.loadingForEnything" class="center">loading...</h1>
+      <h3 v-if="loading.deleteLoading">...loading</h3>
+      
       <div class="edit">
         <div class="container">
           <div class="form">
@@ -178,9 +134,11 @@ watch(updateOpenModal, (newVal) => {
               :ftchData="fetchData"
               @response="(data) => (addFamilyMemberData = data)"
               @employeeValueFromChildComponent="(data) => (employeeValue = data)"
+              :employeeValueFromChildComponent = 'employeeValue'
             />
             <div class="buttons">
               <button @click="editFormSubmit" type="submit" class="submit-btn">ادیت</button>
+              <h3 v-if="loading.editEmployeeLoading">...loading</h3>
             </div>
           </div>
         </div>

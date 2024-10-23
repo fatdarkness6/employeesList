@@ -2,12 +2,9 @@
 import { ref } from 'vue'
 import formComponent from '../formComponent/formComponent.vue'
 import { checkUserOnline } from '@/checkUserIsOnlineOrOffLine/check'
-import { useNotification } from '@kyvg/vue3-notification'
+import { addEmployeeData } from '../../../apis/allApis'
 
 let emit = defineEmits(['response'])
-let props = defineProps({
-  allApis: Object
-})
 
 let addFamilyMemberData = ref([])
 let employeeValue = ref({})
@@ -15,10 +12,10 @@ let loading = ref(false)
 let userIsOnOrOffLine = ref(false)
 let child = ref(null)
 
-// Notification setup
-const { notify } = useNotification()
 
-//----------------------------------functions----------------------------//
+
+//----------------------------------functions------------------------------//
+
 async function submitForm() {
   const isValid = await child.value.handleSubmit((values) => {
     employeeValue.value = values
@@ -43,27 +40,7 @@ async function submitForm() {
     checkUserOnline(userIsOnOrOffLine)
     if (!userIsOnOrOffLine.value) {
       loading.value = true
-      props.allApis
-        .addEmployeeData(data)
-        .then((response) => {
-          if (response.status == 201) {
-            setTimeout(() => {
-              location.reload()
-            }, 3000)
-            notify({
-              title: 'Success',
-              text: 'Add employee successfull ',
-              type: 'success'
-            })
-          }
-        })
-        .catch(() => {
-          notify({
-            title: 'Error',
-            text: 'Error deleting employee: ',
-            type: 'error'
-          })
-        })
+        addEmployeeData(data)
         .finally(() => {
           loading.value = false
         })
@@ -73,8 +50,6 @@ async function submitForm() {
 </script>
 
 <template>
-  <div class="backgroundLoading" v-if="loading"></div>
-  <h1 v-if="loading" class="center">loading...</h1>
   <div class="container">
     <div class="form">
       <formComponent
@@ -83,7 +58,10 @@ async function submitForm() {
         @employeeValueFromChildComponent="(data) => (employeeValue = data)"
       />
       <div class="buttons">
-        <button @click="submitForm" type="submit" class="submit-btn">افزودن</button>
+        <div class="button" >
+          <button @click="submitForm" type="submit" class="submit-btn">افزودن</button>
+          <h3 v-if="loading">loading...</h3>
+        </div>  
         <button @click="emit('response', false)" type="reset" class="cancel-btn">انصراف</button>
       </div>
     </div>

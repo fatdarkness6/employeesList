@@ -2,40 +2,30 @@
 import familyMemberComponent from './familyMemberComponent/familyMemberComponent.vue'
 import { onMounted, ref, watch } from 'vue'
 import { useField, useForm } from 'vee-validate'
+import {formValidation} from '../../../formValidation/formValidation.js'
 import * as yup from 'yup'
 
 let emit = defineEmits(['response', 'employeeValueFromChildComponent', 'submit'])
 let props = defineProps({
-  ftchData: Object
+  ftchData: Object,
+  employeeValueFromChildComponent: Object,
 })
 
 let addFamilyMemberData = ref([])
 //-------------------------------validation-----------------------------//
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-const nameRegex = /^[\p{L}\s]+$/u;
 
-let schema = yup.object({
-  firstName: yup.string().matches(nameRegex , 'لطفا نامتان را درست وارد کنید').required('نام الزامی است'),
-  lastName: yup.string().matches(nameRegex , 'لطفا نام خانوادگیتان را درست وارد کنید').required('نام خانوادگی الزامی است'),
-  email: yup.string().matches(emailRegex , 'لطفا ایمیل را درست وارد کنید').required('ایمیل الزامی است'),
-  dateOfBirth: yup.string().required('تاریخ تولد الزامی است'),
-  family: yup.array().of(
-    yup.object().shape({
-      name: yup.string().matches(nameRegex , 'لطفا نام خانواده خود را درست وارد کنید').required('نام الزامی است'),
-      relation: yup.string().required('رابطه الزامی است'),
-      dateOfBirth: yup.string().required('تاریخ تولد الزامی است')
-    })
-  )
-})
+
+
 
 const { setFieldValue, handleSubmit } = useForm({
-  validationSchema: schema
+  validationSchema: formValidation(yup)
 })
 
 let { value: firstName, errorMessage: firstNameError } = useField('firstName')
 let { value: lastName, errorMessage: lastNameError } = useField('lastName')
 let { value: email, errorMessage: emailError } = useField('email')
 let { value: dateOfBirth, errorMessage: dateOfBirthError } = useField('dateOfBirth')
+
 //................................functions.................................//
 
 function giveDataToEmployeeValue() {
@@ -86,13 +76,14 @@ function removeFamilyMember(index) {
 }
 //................................watch.................................//
 
-watch([firstName, lastName, email, dateOfBirth], () => {
-  emit('employeeValueFromChildComponent', {
-    firstName: firstName.value,
-    lastName: lastName.value,
-    email: email.value,
-    dateOfBirth: dateOfBirth.value
-  })
+watch(() => props.employeeValueFromChildComponent , (newVal) => {
+  console.log(newVal);
+  if (newVal) {
+     newVal.name=  name.value || '';
+     newVal.lastName =  lastName.value || '';
+     newVal.email = email.value || '';
+     newVal.dateOfBirth = dateOfBirth.value || '';
+  }
 })
 
 //................................onMounted.................................//
@@ -106,6 +97,7 @@ onMounted(() => {
 defineExpose({
   handleSubmit
 })
+
 </script>
 
 <template>

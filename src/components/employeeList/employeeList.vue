@@ -2,14 +2,14 @@
 import { ref , onMounted } from 'vue'
 import renderEmployeeList from './renderEmployees/renderEmployees.vue'
 import addEmployee from './addEmployee/addEmployee.vue'
-import { allApis } from '@/apis/allApis'
+import { getSimpleEmployeeData } from '@/apis/allApis'
 let employeeList = ref([])
 let showAddEmployee = ref(false)
 let loading = ref(false)
 
 let request = async () => {
   loading.value = true
-  await allApis.getSimpleEmployeeData()
+  await getSimpleEmployeeData()
   .then((response) => (employeeList.value = response.data))
   .finally(() => {
     loading.value = false
@@ -35,12 +35,12 @@ onMounted(request)
           <h2>کارمندان</h2>
         </div>
         <div v-if="loading"><h1>...loading</h1></div>
-        <renderEmployeeList v-else v-for="data in employeeList" :key="data.id" :data="data" :allApis="allApis" />
+        <renderEmployeeList v-else v-for="data in employeeList" :key="data.id" :data="data"  />
         <div class="addEmployee">
           <div :class="[showAddEmployee ? 'show' : 'hidden']">
-            <addEmployee @response="(data) => (showAddEmployee = data)" :allApis="allApis"/>
+            <addEmployee @response="(data) => (showAddEmployee = data)" />
           </div>
-          <button v-if="!showAddEmployee" @click="changeValueOfAddEmployee">افزودن کارمند</button>
+          <button v-if="!showAddEmployee" @click="changeValueOfAddEmployee" >افزودن کارمند</button>
         </div>
       </div>
     </div>
