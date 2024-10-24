@@ -77,17 +77,7 @@ async function submitForm() {
   </div>
 </template>
 <style scoped>
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
 
-body {
-  font-family: Arial, sans-serif;
-  background-color: #f4f4f4;
-  direction: rtl;
-}
 .error-input {
   border-bottom: 2px solid red;
 }
@@ -177,4 +167,5 @@ h5 {
   display: flex;
   justify-content: space-between;
 }
+
 </style>
