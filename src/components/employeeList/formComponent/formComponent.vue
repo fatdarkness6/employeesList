@@ -2,7 +2,7 @@
 import familyMemberComponent from './familyMemberComponent/familyMemberComponent.vue'
 import { onMounted, ref, watch } from 'vue'
 import { useField, useForm } from 'vee-validate'
-import {formValidation} from '../../../formValidation/formValidation.js'
+import { firstNameAndLastNameValidation, emailValidation } from '@/util/yupValidation/validations'
 import * as yup from 'yup'
 
 let emit = defineEmits(['response', 'employeeValueFromChildComponent', 'submit'])
@@ -14,11 +14,23 @@ let props = defineProps({
 let addFamilyMemberData = ref([])
 //-------------------------------validation-----------------------------//
 
-
+let validations = yup.object({
+        firstName: firstNameAndLastNameValidation("نام را درست بنویسید"),
+        lastName: firstNameAndLastNameValidation("نام خانوادگی را درست بنویسید"),
+        email: emailValidation(),
+        dateOfBirth: yup.string().required('تاریخ تولد الزامی است'),
+        family: yup.array().of(
+          yup.object().shape({
+            name: firstNameAndLastNameValidation("نام را درست بنویسید"),
+            relation: yup.string().required('رابطه الزامی است'),
+            dateOfBirth: yup.string().required('تاریخ تولد الزامی است')
+          })
+        )
+      })
 
 
 const { setFieldValue, handleSubmit } = useForm({
-  validationSchema: formValidation(yup)
+  validationSchema: validations
 })
 
 let { value: firstName, errorMessage: firstNameError } = useField('firstName')
@@ -77,9 +89,8 @@ function removeFamilyMember(index) {
 //................................watch.................................//
 
 watch(() => props.employeeValueFromChildComponent , (newVal) => {
-  console.log(newVal);
   if (newVal) {
-     newVal.name=  name.value || '';
+     newVal.name=  firstName.value || '';
      newVal.lastName =  lastName.value || '';
      newVal.email = email.value || '';
      newVal.dateOfBirth = dateOfBirth.value || '';

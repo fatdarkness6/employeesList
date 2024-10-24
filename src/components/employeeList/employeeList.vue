@@ -2,7 +2,8 @@
 import { ref , onMounted } from 'vue'
 import renderEmployeeList from './renderEmployees/renderEmployees.vue'
 import addEmployee from './addEmployee/addEmployee.vue'
-import { getSimpleEmployeeData } from '@/apis/allApis'
+import { getSimpleEmployeeData } from '@/service/apis/allApis'
+import { failNotification } from '@/util/NotifyMassage/notifyInformation'
 let employeeList = ref([])
 let showAddEmployee = ref(false)
 let loading = ref(false)
@@ -11,6 +12,9 @@ let request = async () => {
   loading.value = true
   await getSimpleEmployeeData()
   .then((response) => (employeeList.value = response.data))
+  .catch(() => {
+    failNotification('خطا در دریافت اطلاعات کارمندان')
+  })
   .finally(() => {
     loading.value = false
   })

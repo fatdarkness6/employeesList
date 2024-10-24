@@ -1,8 +1,10 @@
 <script setup>
 import { ref } from 'vue'
 import formComponent from '../formComponent/formComponent.vue'
-import { checkUserOnline } from '@/checkUserIsOnlineOrOffLine/check'
-import { addEmployeeData } from '../../../apis/allApis'
+import { checkUserOnline } from '@/util/checkUserIsOnlineOrOffLine/check'
+import { addEmployeeData } from '../../../service/apis/allApis'
+import { sucssesNotifiCation , failNotification } from '@/util/NotifyMassage/notifyInformation'
+import { reloadPage } from '@/util/reloadPageLogic/reloadPage'
 
 let emit = defineEmits(['response'])
 
@@ -41,6 +43,13 @@ async function submitForm() {
     if (!userIsOnOrOffLine.value) {
       loading.value = true
         addEmployeeData(data)
+        .then(() => {
+          sucssesNotifiCation('کارمند با موفقیت افزوده شد')
+          reloadPage()
+        })
+        .catch(() => {
+          failNotification('مشکلی پیش آمده است')
+        })
         .finally(() => {
           loading.value = false
         })
@@ -67,7 +76,7 @@ async function submitForm() {
     </div>
   </div>
 </template>
-<style>
+<style scoped>
 * {
   box-sizing: border-box;
   margin: 0;

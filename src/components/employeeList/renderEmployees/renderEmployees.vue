@@ -1,8 +1,10 @@
 <script setup>
 import { ref, watch } from 'vue';
 import formComponent from '../formComponent/formComponent.vue';
-import { checkUserOnline } from '@/checkUserIsOnlineOrOffLine/check';
-import { deleteEmployeeData , editEmployeeData , getAllEmployeeData} from '../../../apis/allApis'
+import { checkUserOnline } from '@/util/checkUserIsOnlineOrOffLine/check';
+import { deleteEmployeeData , editEmployeeData , getAllEmployeeData} from '../../../service/apis/allApis'
+import { reloadPage } from '@/util/reloadPageLogic/reloadPage';
+import { sucssesNotifiCation , failNotification } from '@/util/NotifyMassage/notifyInformation';
 
 let props = defineProps({
   data: Object,
@@ -31,6 +33,9 @@ function getAllEmployeeInfo() {
     getAllEmployeeData(props.data.id)
       .then((data) => {
         fetchData.value = data.data;
+      })
+      .catch(() => {
+        failNotification('خطا در دریافت اطلاعات کلی کارمندان');
       })
       .finally(() => {
         loading.value.getAllEmployeeLoading = false;
@@ -65,6 +70,13 @@ async function editFormSubmit() {
     loading.value.editEmployeeLoading = true;
 
       editEmployeeData(props.data.id, data)
+      .then(() => {
+      sucssesNotifiCation('کاربر با موفقیت ویرایش شد');
+      reloadPage()
+  })
+  .catch(() => {
+    failNotification('خطا در ویرایش کاربر');
+  })
       .finally(() => {
         loading.value.editEmployeeLoading = false;
       });
@@ -78,6 +90,13 @@ async function deleteEmployee() {
   if (!userIsOnOrOffLine.value) {
 
     deleteEmployeeData(props.data.id)
+    .then(() => {
+      sucssesNotifiCation('کاربر با موفقیت حذف شد');
+    reloadPage()
+    })
+    .catch(() => {
+    failNotification('خطا در حذف کاربر');
+})
       .finally(() => {
         loading.value.deleteLoading = false;
       });
