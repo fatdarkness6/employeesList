@@ -1,6 +1,6 @@
 <script setup>
-import { useField } from 'vee-validate'
-import { watch } from 'vue';
+import { ErrorMessage, Field } from 'vee-validate';
+
 
 let props = defineProps({
   index: Number,
@@ -19,21 +19,6 @@ function deleteMember() {
   emit('deleteFamily', props.index)
 }
 
-//............................validation...............................//
-
-let { value: name, errorMessage: errorName } = useField(`family[${props.index}].name`)
-let { value: relation, errorMessage: errorRelation } = useField(`family[${props.index}].relation`)
-let { value: dateOfBirth, errorMessage: errorDateOfBirth } = useField(`family[${props.index}].dateOfBirth`)
-
-//............................watch....................................//
-
-watch(() => props.items, (newVal) => {
-  if (newVal) {
-    name.value = newVal.name || '';
-    relation.value = newVal.relation || '';
-    dateOfBirth.value = newVal.dateOfBirth || '';
-  }
-}, )
 </script>
 
 <template>
@@ -41,34 +26,31 @@ watch(() => props.items, (newVal) => {
     <h5>#{{ findIn(props.index) }}</h5>
     <div class="form-group">
       <label for="familyMemberName1">نام</label>
-      <input
-       :class="[errorName && 'errorBorder']"
-        v-model="name"
+      <Field  type="text" :name="`family[${props.index}].name`" v-slot="{ field }">
+        <input
+        v-bind="field"
         type="text"
         id="familyMemberName1"
         placeholder="مریم قربانی"
       />
-      <div v-if="errorName" class="errorRedText">
-        <h3>{{ errorName }}</h3>
-      </div>
+      </Field>
+      <ErrorMessage :name="`family[${props.index}].name`" class="errorRedText" />
     </div>
     <div class="form-group">
       <label for="relationship1">نسبت</label>
-      <select :class="[errorRelation && 'errorBorder']" v-model="relation" id="relationship1">
+      <Field as="select" :name="`family[${props.index}].relation`"  id="relationship1">
         <option value="daughter">دختر</option>
         <option value="son">پسر</option>
         <option value="spouse">همسر</option>
-      </select>
-      <div v-if="errorRelation" class="errorRedText">
-        <h3>{{ errorRelation }}</h3>
-      </div>
+      </Field>
+      <ErrorMessage :name="`family[${props.index}].relation`" class="errorRedText" />
     </div>
     <div class="form-group">
       <label for="birthDate1">تاریخ تولد</label>
-      <input :class="[errorDateOfBirth && 'errorBorder']" v-model="dateOfBirth" type="date" id="birthDate1" />
-      <div v-if="errorDateOfBirth" class="errorRedText">
-        <h3>{{ errorDateOfBirth }}</h3>
-      </div>
+      <Field :name="`family[${props.index}].dateOfBirth`" v-slot="{ field }" >
+        <input  v-bind="field" type="date" id="birthDate1" />
+      </Field>
+      <ErrorMessage :name="`family[${props.index}].dateOfBirth`" class="errorRedText" />
     </div>
     <button @click="deleteMember" type="button" class="delete-btn">حذف</button>
   </div>

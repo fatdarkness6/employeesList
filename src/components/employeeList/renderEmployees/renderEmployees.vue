@@ -13,14 +13,13 @@ let props = defineProps({
 let openModal = ref(false);
 let updateOpenModal = ref(0);
 let fetchData = ref([]);
-let addFamilyMemberData = ref([]);
 let userIsOnOrOffLine = ref(false);
 let loading = ref({
   getAllEmployeeLoading: false,
   editEmployeeLoading: false,
   deleteLoading: false,
 });
-let employeeValue = ref({});
+let allInputsValue = ref({})
 let child = ref(null);
 
 
@@ -46,29 +45,24 @@ function getAllEmployeeInfo() {
 async function editFormSubmit() {
   
   checkUserOnline(userIsOnOrOffLine);
-  const isValid = await child.value.handleSubmit((values) => {
-    employeeValue.value = values;
-    addFamilyMemberData.value = values.family || [];
-    return true;
-  })();
-
+  const isValid = await child.value.submitFormData();
   let data = {
-    firstName: employeeValue.value.firstName,
-    lastName: employeeValue.value.lastName,
-    email: employeeValue.value.email,
-    dateOfBirth: employeeValue.value.dateOfBirth,
-    family: addFamilyMemberData.value.map((item) => {
-      return {
+    firstName: allInputsValue.value.firstName,
+    lastName: allInputsValue.value.lastName,
+    email: allInputsValue.value.email,
+    dateOfBirth: allInputsValue.value.dateOfBirth,
+    family: allInputsValue.value?.family?.map((item) => {
+      if(item.name !=="" && item.relation !=="" && item.dateOfBirth) {
+        return {
         name: item.name,
         relation: item.relation,
         dateOfBirth: new Date(item.dateOfBirth),
       };
-    }),
+      }
+    }) || []
   };
-
-  if (isValid && !userIsOnOrOffLine.value) {
+  if (isValid.valid && !userIsOnOrOffLine.value) {
     loading.value.editEmployeeLoading = true;
-
       editEmployeeData(props.data.id, data)
       .then(() => {
       sucssesNotifiCation('کاربر با موفقیت ویرایش شد');
@@ -151,9 +145,7 @@ watch(updateOpenModal, (newVal) => {
             <formComponent
               ref="child"
               :ftchData="fetchData"
-              @response="(data) => (addFamilyMemberData = data)"
-              @employeeValueFromChildComponent="(data) => (employeeValue = data)"
-              :employeeValueFromChildComponent = 'employeeValue'
+              @employeeValueFromChildComponent="(data) => (allInputsValue = data.values)"
             />
             <div class="buttons">
               <button @click="editFormSubmit" type="submit" class="submit-btn">ادیت</button>

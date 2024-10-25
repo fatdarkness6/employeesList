@@ -5,7 +5,7 @@ export const nameRegex =  /^[\p{L}\s]+$/u;
 
 
 export function firstNameAndLastNameValidation(text) {
-    return yup.string().matches(nameRegex , text).required('نام الزامی است')
+    return yup.string().matches(nameRegex , text).required('فیلد را پر کنید')
 }
 
 export function emailValidation() {

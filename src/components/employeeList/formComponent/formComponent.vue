@@ -1,17 +1,19 @@
+
 <script setup>
 import familyMemberComponent from './familyMemberComponent/familyMemberComponent.vue'
-import { onMounted, ref, watch } from 'vue'
-import { useField, useForm } from 'vee-validate'
+import { onMounted, ref  } from 'vue'
 import { firstNameAndLastNameValidation, emailValidation } from '@/util/yupValidation/validations'
+import { Field , Form , ErrorMessage } from 'vee-validate'
 import * as yup from 'yup'
 
-let emit = defineEmits(['response', 'employeeValueFromChildComponent', 'submit'])
+let emit = defineEmits(['response', 'employeeValueFromChildComponent'])
 let props = defineProps({
   ftchData: Object,
-  employeeValueFromChildComponent: Object,
 })
 
 let addFamilyMemberData = ref([])
+let form = ref(null)
+
 //-------------------------------validation-----------------------------//
 
 let validations = yup.object({
@@ -28,16 +30,6 @@ let validations = yup.object({
         )
       })
 
-
-const { setFieldValue, handleSubmit } = useForm({
-  validationSchema: validations
-})
-
-let { value: firstName, errorMessage: firstNameError } = useField('firstName')
-let { value: lastName, errorMessage: lastNameError } = useField('lastName')
-let { value: email, errorMessage: emailError } = useField('email')
-let { value: dateOfBirth, errorMessage: dateOfBirthError } = useField('dateOfBirth')
-
 //................................functions.................................//
 
 function giveDataToEmployeeValue() {
@@ -49,10 +41,6 @@ function giveDataToEmployeeValue() {
     } else {
       formattedDateOfBirth = ''
     }
-    setFieldValue('firstName', props.ftchData.firstName)
-    setFieldValue('lastName', props.ftchData.lastName)
-    setFieldValue('email', props.ftchData.email)
-    setFieldValue('dateOfBirth', formattedDateOfBirth)
     addFamilyMemberData.value =
       props?.ftchData?.family?.map((items) => {
         let date
@@ -68,7 +56,13 @@ function giveDataToEmployeeValue() {
         }
       }) || []
 
-    setFieldValue('family', addFamilyMemberData.value)
+      form.value.setValues({
+      firstName: props?.ftchData?.firstName || '',
+      lastName: props?.ftchData?.lastName || '',
+      email: props?.ftchData?.email || '',
+      dateOfBirth: formattedDateOfBirth || '',
+      family: addFamilyMemberData.value
+    })
   }
 }
 
@@ -79,91 +73,83 @@ function addFamilyMember() {
     dateOfBirth: ''
   }
   addFamilyMemberData.value.push(addFamilyObject)
-  setFieldValue('family', addFamilyMemberData.value)
 }
 
 function removeFamilyMember(index) {
   addFamilyMemberData.value.splice(index, 1)
-  setFieldValue('family', addFamilyMemberData.value)
 }
-//................................watch.................................//
 
-watch(() => props.employeeValueFromChildComponent , (newVal) => {
-  if (newVal) {
-     newVal.name=  firstName.value || '';
-     newVal.lastName =  lastName.value || '';
-     newVal.email = email.value || '';
-     newVal.dateOfBirth = dateOfBirth.value || '';
-  }
-})
+
 
 //................................onMounted.................................//
 
 onMounted(() => {
   giveDataToEmployeeValue()
-  emit('response', addFamilyMemberData.value)
+  emit('employeeValueFromChildComponent', form.value)
 })
 //----------------------------------defineExpose----------------------------//
 
+function submitFormData() {
+  return form.value.validate()
+}
+
 defineExpose({
-  handleSubmit
+  submitFormData,
 })
+
 
 </script>
 
 <template>
+  <Form ref="form" :validation-schema="validations">
   <div class="section">
     <h4>افزودن کارمند</h4>
     <div class="form-group">
       <label for="firstName">نام</label>
-      <input
-        :class="[firstNameError && 'errorBorder']"
-        v-model="firstName"
+      <Field type="text" name="firstName" v-slot="{ field }">
+        <input
+        v-bind="field"
         type="text"
         id="firstName"
         placeholder="احسان"
       />
-      <div v-if="firstNameError" class="errorRedText">
-        <h3>{{ firstNameError }}</h3>
-      </div>
+      </Field>
+      <ErrorMessage name="firstName" class="errorRedText" />
     </div>
     <div class="form-group">
       <label for="lastName">نام خانوادگی</label>
-      <input
-        :class="[lastNameError && 'errorBorder']"
-        v-model="lastName"
+      <Field type="text" name="lastName" v-slot="{ field }">
+        <input
+        v-bind="field"
         type="text"
         id="lastName"
         placeholder="رجبی"
       />
-      <div v-if="lastNameError" class="errorRedText">
-        <h3>{{ lastNameError }}</h3>
-      </div>
+      </Field>
+      <ErrorMessage name="lastName" class="errorRedText" />
     </div>
     <div class="form-group">
       <label for="email">ایمیل</label>
-      <input
-        :class="[emailError && 'errorBorder']"
-        v-model="email"
+      <Field type="email" name="email" v-slot="{ field }">
+        <input
+        v-bind="field"
         type="email"
         id="email"
         placeholder="example@gmail.com"
       />
-      <div v-if="emailError" class="errorRedText">
-        <h3>{{ emailError }}</h3>
-      </div>
+      </Field>
+      <ErrorMessage name="email" class="errorRedText" />
     </div>
     <div class="form-group">
       <label for="birthDate">تاریخ تولد</label>
-      <input
-        :class="[dateOfBirthError && 'errorBorder']"
-        v-model="dateOfBirth"
+      <Field  name="dateOfBirth" v-slot="{ field }">
+        <input
+        v-bind="field"
         type="date"
         id="birthDate"
       />
-      <div v-if="dateOfBirthError" class="errorRedText">
-        <h3>{{ dateOfBirthError }}</h3>
-      </div>
+      </Field>
+      <ErrorMessage name="dateOfBirth" class="errorRedText" />
     </div>
   </div>
   <div class="section family">
@@ -175,6 +161,9 @@ defineExpose({
       :items="items"
       @deleteFamily="removeFamilyMember"
     />
-    <button @click="addFamilyMember">افزودن عضو</button>
+    <button @click="addFamilyMember" type="button">افزودن عضو</button>
   </div>
+</Form>
 </template>
+
+

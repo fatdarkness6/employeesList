@@ -8,36 +8,29 @@ import { reloadPage } from '@/util/reloadPageLogic/reloadPage'
 
 let emit = defineEmits(['response'])
 
-let addFamilyMemberData = ref([])
-let employeeValue = ref({})
+let allInputsValue = ref({})
 let loading = ref(false)
 let userIsOnOrOffLine = ref(false)
 let child = ref(null)
 
 
-
 //----------------------------------functions------------------------------//
 
 async function submitForm() {
-  const isValid = await child.value.handleSubmit((values) => {
-    employeeValue.value = values
-    addFamilyMemberData.value = values.family || []
-    return true
-  })()
-
-  if (isValid) {
+  const isValid = await child.value.submitFormData()
+  if (isValid.valid) {
     let data = {
-      firstName: employeeValue.value.firstName,
-      lastName: employeeValue.value.lastName,
-      email: employeeValue.value.email,
-      dateOfBirth: new Date(employeeValue.value.dateOfBirth).toISOString(),
-      family: addFamilyMemberData.value.map((item) => {
+      firstName: allInputsValue.value.firstName,
+      lastName: allInputsValue.value.lastName,
+      email: allInputsValue.value.email,
+      dateOfBirth: new Date(allInputsValue.value.dateOfBirth).toISOString(),
+      family: allInputsValue.value?.family?.map((item) => {
         return {
           name: item.name,
           relation: item.relation,
           dateOfBirth: new Date(item.dateOfBirth).toISOString()
         }
-      })
+      }) || []
     }
     checkUserOnline(userIsOnOrOffLine)
     if (!userIsOnOrOffLine.value) {
@@ -63,8 +56,7 @@ async function submitForm() {
     <div class="form">
       <formComponent
         ref="child"
-        @response="(data) => (addFamilyMemberData = data)"
-        @employeeValueFromChildComponent="(data) => (employeeValue = data)"
+        @employeeValueFromChildComponent="(data) => (allInputsValue = data.values)"
       />
       <div class="buttons">
         <div class="button" >
@@ -77,7 +69,6 @@ async function submitForm() {
   </div>
 </template>
 <style scoped>
-
 .error-input {
   border-bottom: 2px solid red;
 }
