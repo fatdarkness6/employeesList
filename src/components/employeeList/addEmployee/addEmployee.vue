@@ -3,7 +3,7 @@ import { ref, type DefineComponent } from 'vue'
 import formComponent from '../formComponent/formComponent.vue'
 import { checkUserOnline } from '@/util/checkUserIsOnlineOrOffLine/check'
 import { addEmployeeData } from '../../../service/apis/allApis'
-import { sucssesNotifiCation , failNotification } from '@/util/NotifyMassage/notifyInformation'
+import { sucssesNotifiCation, failNotification } from '@/util/NotifyMassage/notifyInformation'
 import { reloadPage } from '@/util/reloadPageLogic/reloadPage'
 import type { AllEmployees } from '@/types/getAllEmployeesInfoTypes'
 
@@ -21,7 +21,6 @@ const loading = ref<boolean>(false)
 const userIsOnOrOffLine = ref<boolean>(false)
 const child = ref<DefineComponent | null>(null)
 
-
 //----------------------------------functions------------------------------//
 
 async function submitForm() {
@@ -32,18 +31,19 @@ async function submitForm() {
       lastName: allInputsValue.value.lastName,
       email: allInputsValue.value.email,
       dateOfBirth: new Date(allInputsValue.value.dateOfBirth).toISOString(),
-      family: allInputsValue.value?.family?.map((item) => {
-        return {
-          name: item.name,
-          relation: item.relation,
-          dateOfBirth: new Date(item.dateOfBirth).toISOString()
-        }
-      }) || []
+      family:
+        allInputsValue.value?.family?.map((item) => {
+          return {
+            name: item.name,
+            relation: item.relation,
+            dateOfBirth: new Date(item.dateOfBirth).toISOString(),
+          }
+        }) || [],
     }
     checkUserOnline(userIsOnOrOffLine)
     if (!userIsOnOrOffLine.value) {
       loading.value = true
-        addEmployeeData(data)
+      addEmployeeData(data)
         .then(() => {
           sucssesNotifiCation('کارمند با موفقیت افزوده شد')
           reloadPage()
@@ -64,13 +64,14 @@ async function submitForm() {
     <div class="form">
       <formComponent
         ref="child"
+        :ftchData="allInputsValue"
         @employeeValueFromChildComponent="(data) => (allInputsValue = data.values)"
       />
       <div class="buttons">
-        <div class="button" >
+        <div class="button">
           <button @click="submitForm" type="submit" class="submit-btn">افزودن</button>
           <h3 v-if="loading">loading...</h3>
-        </div>  
+        </div>
         <button @click="emit('response', false)" type="reset" class="cancel-btn">انصراف</button>
       </div>
     </div>
@@ -166,5 +167,4 @@ h5 {
   display: flex;
   justify-content: space-between;
 }
-
 </style>
